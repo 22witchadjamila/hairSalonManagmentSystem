@@ -18,4 +18,4 @@ The goal of the system is to improve organization, reduce booking conflicts, and
 - Pahyment tracking
 
 ## 📊 UML Class Diagram
-![uml](https://github.com/user-attachments/assets/997e0318-36f4-4041-8498-923d8b74a997)
+<img width="820" height="500" alt="assignment1UML" src="https://github.com/user-attachments/assets/45ff7d3d-ce16-4cc6-a74a-10b74b707185" />
