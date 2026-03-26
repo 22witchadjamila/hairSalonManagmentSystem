@@ -5,8 +5,12 @@ import za.ac.cput.domain.Customer;
 public class CustomerFactory {
     public static Customer createCustomer(String id, String name, String email, String phoneNumber) {
 
-        if(id == null || name == null || email == null || phoneNumber == null) {
-            return null;
+        // simple null or empty check
+        if (id == null || id.isEmpty() ||
+            name == null || name.isEmpty() ||
+            email == null || email.isEmpty() ||
+            phoneNumber == null || phoneNumber.isEmpty()) {
+            return null; // still returning null if invalid
         }
 
         return new Customer.Builder()
