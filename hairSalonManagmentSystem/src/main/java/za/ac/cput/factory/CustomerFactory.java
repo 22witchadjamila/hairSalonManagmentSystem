@@ -13,7 +13,7 @@ public class CustomerFactory {
                 .setCustomerId(id)
                 .setName(name)
                 .setEmail(email)
-                .setPhoneNumber(phoneNumber)
+                .setPhoneNumber(Integer.parseInt(phoneNumber))
                 .build();
     }
 }
