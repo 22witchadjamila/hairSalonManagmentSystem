@@ -1,3 +1,9 @@
+/* CustomerFactoryTest.java
+Junit Test
+Author: Marc Kabala (230701876)
+Date: 20 March 2026
+*/
+
 package za.ac.cput.factory;
 
 import org.junit.jupiter.api.Test;
