@@ -1,9 +1,15 @@
+/* Customer.java
+- Domain model class representing a Customer entity with attributes and Builder pattern for object creation.
+ Author: Marc Kabala
+ Date: 20 March 2026
+ */
+
 package za.ac.cput.domain;
 
 public class Customer {
     private String customerId;
     private String name;
-    private int phoneNumber;
+    private String phoneNumber;
     private String email;
 
     private Customer(){}
@@ -22,7 +28,7 @@ public class Customer {
         return name;
     }
 
-    public int getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
@@ -43,7 +49,7 @@ public class Customer {
     public static class Builder{
         private String customerId;
         private String name;
-        private int phoneNumber;
+        private String phoneNumber;
         private String email;
 
         public Builder setCustomerId(String customerId) {
@@ -56,7 +62,7 @@ public class Customer {
             return this;
         }
 
-        public Builder setPhoneNumber(int phoneNumber) {
+        public Builder setPhoneNumber(String phoneNumber) {
             this.phoneNumber = phoneNumber;
             return this;
         }

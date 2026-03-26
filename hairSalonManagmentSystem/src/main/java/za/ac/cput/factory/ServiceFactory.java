@@ -1,7 +1,11 @@
 package za.ac.cput.factory;
 
 import za.ac.cput.domain.Service;
-
+/*ServiceFactory.java
+ Service Factory  class
+ Author: Witcha Francisco (222894822)
+ Date: 26/03/2026
+*/
 public class ServiceFactory {
 
         public static Service createService (String Id, String name,double price, int duration) throws IllegalArgumentException {

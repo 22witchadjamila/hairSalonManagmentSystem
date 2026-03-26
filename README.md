@@ -15,7 +15,7 @@ The goal of the system is to improve organization, reduce booking conflicts, and
 - Appointment booking system
 - Staff management
 - Service management
-- Pahyment tracking
+- Payment tracking
 
 ## 📊 UML Class Diagram
 <img width="820" height="500" alt="assignment1UML" src="https://github.com/user-attachments/assets/45ff7d3d-ce16-4cc6-a74a-10b74b707185" />
