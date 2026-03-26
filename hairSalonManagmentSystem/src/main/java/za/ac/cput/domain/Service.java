@@ -44,6 +44,19 @@ public class Service{
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Service)) return false;
+        Service service = (Service) o;
+        return serviceId != null && serviceId.equals(service.serviceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return serviceId != null ? serviceId.hashCode() : 0;
+    }
+
     public static class Builder {
         private String serviceId;
         private String serviceName;
