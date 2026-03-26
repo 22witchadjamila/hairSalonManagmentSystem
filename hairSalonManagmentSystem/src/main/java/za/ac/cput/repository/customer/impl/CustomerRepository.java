@@ -1,3 +1,9 @@
+/* CustomerRepository.java
+- Repository implementation handling CRUD operations for Customer objects as the data access layer.
+Author: Marc Kabala
+Date: 26 March 2026
+*/
+
 package za.ac.cput.repository.customer.impl;
 
 import za.ac.cput.domain.Customer;

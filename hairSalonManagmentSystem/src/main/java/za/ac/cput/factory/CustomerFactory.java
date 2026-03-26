@@ -1,3 +1,9 @@
+/* CustomerFactory.java
+Factory class responsible for creating validated Customer objects using the Builder pattern.
+Author: Marc Kabala (230701876)
+Date: 20 March 2026
+*/
+
 package za.ac.cput.factory;
 
 import za.ac.cput.domain.Customer;

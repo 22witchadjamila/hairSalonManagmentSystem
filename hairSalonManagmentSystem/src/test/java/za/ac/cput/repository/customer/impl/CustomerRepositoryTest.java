@@ -1,3 +1,9 @@
+/* CustomerRepositoryTest.java
+Junit Test
+Author: Marc Kabala (230701876)
+Date: 26 March 2026
+*/
+
 package za.ac.cput.repository.customer.impl;
 
 import org.junit.jupiter.api.BeforeAll;
