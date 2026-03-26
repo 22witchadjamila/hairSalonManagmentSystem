@@ -43,7 +43,7 @@ class CustomerRepositoryTest {
         Customer updated = new Customer.Builder()
                 .setCustomerId(customer.getCustomerId())
                 .setName("Updated Name")
-                .setPhoneNumber(Integer.parseInt("0987654321"))
+                .setPhoneNumber("0987654321")
                 .build();
 
         Customer result = repository.update(updated);
