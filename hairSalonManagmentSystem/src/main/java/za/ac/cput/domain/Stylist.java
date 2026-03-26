@@ -5,6 +5,7 @@ Student Number: 240160711
 Date: 20 March 2026
 */
 
+
 package za.ac.cput.domain;
 
 public class Stylist {
