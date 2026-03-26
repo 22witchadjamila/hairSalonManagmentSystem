@@ -1,3 +1,10 @@
+/* Stylist.java
+- Domain model class representing a Stylist entity with attributes and Builder pattern.
+Author: Will Bryan Koeries
+Student Number: 240160711
+Date: 20 March 2026
+*/
+
 package za.ac.cput.domain;
 
 public class Stylist {

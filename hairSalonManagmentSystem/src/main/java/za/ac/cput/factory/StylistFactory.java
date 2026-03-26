@@ -1,3 +1,10 @@
+/* StylistFactory.java
+- Created Stylist objects with basic validation.
+Author: Will Bryan Koeries
+Student Number: 240160711
+Date: 20 March 2026
+*/
+
 package za.ac.cput.factory;
 
 import za.ac.cput.domain.Stylist;
