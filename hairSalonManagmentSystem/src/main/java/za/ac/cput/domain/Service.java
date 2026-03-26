@@ -1,5 +1,9 @@
 package za.ac.cput.domain;
-
+/*Service.java
+ Service  class
+ Author: Witcha Francisco (222894822)
+ Date: 23/03/2026
+*/
 public class Service{
     private String serviceId;
     private String serviceName;

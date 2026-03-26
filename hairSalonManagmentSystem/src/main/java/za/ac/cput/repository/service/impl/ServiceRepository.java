@@ -3,7 +3,11 @@ import za.ac.cput.domain.Service;
 import za.ac.cput.repository.service.IServiceRepository;
 import java.util.HashSet;
 import java.util.Set;
-
+/*ServiceRepository.java
+ Service Repository  class
+ Author: Witcha Francisco (222894822)
+ Date: 25/03/2026
+*/
 public class ServiceRepository  implements IServiceRepository  {
 
     private static ServiceRepository repository = null;
