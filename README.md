@@ -44,7 +44,7 @@ Handles recorded payments for completed appointments, including method and amoun
 
 ## 👥 **Group Members**
 **Leader:**  
-1. *Marc* — System Coordination & Architecture  
+1. *Marc Kabala* — System Coordination & Architecture  
 
 **Contributors:**  
 2. Marc Kabala (230701876) — Customer Entity  
@@ -53,7 +53,6 @@ Handles recorded payments for completed appointments, including method and amoun
 5. Witcha Francisco (222894822) — Service Entity  
 6. Reece Josephs (218152701) — Payment Entity  
 
-*Edit and update names as required.*
 
 ---
 
