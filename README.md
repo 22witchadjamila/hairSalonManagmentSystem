@@ -1,21 +1,84 @@
-# 💇‍♀️ Hair Salon Management System
+# 💇‍♀️ Hair Salon Management System  
+A Java-based application designed to manage salon operations such as bookings, customers, staff, and services.
 
-A Java-based application designed to manage salon operations such as bookings, custoemrs, staff, and services.
+---
 
-## 📖 Description
+## 📖 **Domain**
+A specialized hair salon management system built to support daily business operations.  
+The system helps manage customer registration, appointment scheduling, stylist availability, service listings, and payment tracking.
 
-This system helps a hair salon manage its daily operations efficiently.
-It allows customers to book appointments, staff to manage schedules, and administrators to track services and payments.
+It aims to improve efficiency, reduce scheduling conflicts, and deliver a seamless customer experience.
 
-The goal of the system is to improve organization, reduce booking conflicts, and enhance customer experience.
+---
 
-## 🚀 Features
+## 🛠️ **How it Works**
+Registered **Customers** can book appointments for available **Services** based on time slots managed by **Stylists**.  
+Salon **Administrators** control and oversee appointments, manage service offerings, view payments, and maintain staff details.
 
-- Customer registration and management
-- Appointment booking system
-- Staff management
-- Service management
-- Payment tracking
+The system ensures the enforcement of important business rules such as:
 
-## 📊 UML Class Diagram
+- Preventing double booking of customers and stylists  
+- Ensuring appointments are made only for available stylists  
+- Automatically tracking appointment dates, times, and statuses  
+- Ensuring payments correspond accurately to provided services  
+
+---
+
+## 🧩 **Entities**
+### **Customer**
+Represents individuals who can register and book appointments at the salon.
+
+### **Appointment**
+Records scheduled sessions between a customer and stylist and tracks date, time, and status.
+
+### **Stylist**
+Salon staff responsible for providing services. Each stylist has a name, specialization, and years of experience.
+
+### **Service**
+Represents services offered at the salon (e.g., haircut, coloring, treatment) with price and duration.
+
+### **Payment**
+Handles recorded payments for completed appointments, including method and amount.
+
+---
+
+## 👥 **Group Members**
+**Leader:**  
+1. *Marc* — System Coordination & Architecture  
+
+**Contributors:**  
+2. Marc Kabala (230701876) — Customer Entity  
+3. Dayyaan Francis (222277343) — Appointment Entity  
+4. Will Koeries (240160711) — Stylist Entity  
+5. Witcha Francisco (222894822) — Service Entity  
+6. Reece Josephs (218152701) — Payment Entity  
+
+*Edit and update names as required.*
+
+---
+
+## 🔧 **Contributing Guidelines**
+### **Pull Request Process**
+- Create a new branch named after your student number  
+- Implement your assigned feature or entity with tests  
+- Ensure all tests pass  
+- Update system documentation when necessary  
+- Create a Pull Request to the `main` branch  
+- Request a review from the team leader  
+- Apply review changes  
+- Merge after approval  
+
+---
+
+## 📌 **Code Review Checklist**
+- Adheres to **Builder Pattern**  
+- Includes **TDD (Test-Driven Development)** tests  
+- Proper package structure  
+- Clear author comments included  
+- No merge conflicts  
+- All tests passing successfully  
+
+---
+
+## 📊 **UML Class Diagram**
 <img width="820" height="500" alt="assignment1UML" src="https://github.com/user-attachments/assets/45ff7d3d-ce16-4cc6-a74a-10b74b707185" />
