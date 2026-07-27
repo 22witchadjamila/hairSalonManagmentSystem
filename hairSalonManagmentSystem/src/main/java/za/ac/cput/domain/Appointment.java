@@ -1,67 +1,137 @@
 package za.ac.cput.domain;
 
+import jakarta.persistence.*;
+import za.ac.cput.hairappointment.domain.enums.AppointmentStatus;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+@Entity
+@Table(name = "Appointment")
 public class Appointment {
 
+    @Id
     private String appointmentId;
-    private String date;
-    private String time;
-    private String clientId;
-    private String employeeId;
-    private String serviceId;
 
-    private Appointment(Builder builder) {
+    private LocalDate appointmentDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
+
+    @Enumerated(EnumType.STRING)
+    private AppointmentStatus status;
+
+    private String notes;
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
+    @ManyToOne
+    @JoinColumn(name = "stylist_id")
+    private Stylist stylist;
+
+    protected Appointment() {}
+
+    public Appointment(Builder builder) {
         this.appointmentId = builder.appointmentId;
-        this.date = builder.date;
-        this.time = builder.time;
-        this.clientId = builder.clientId;
-        this.employeeId = builder.employeeId;
-        this.serviceId = builder.serviceId;
+        this.appointmentDate = builder.appointmentDate;
+        this.startTime = builder.startTime;
+        this.endTime = builder.endTime;
+        this.notes = builder.notes;
+        this.createdAt = builder.createdAt;
     }
 
-    // Getters
-    public String getAppointmentId() { return appointmentId; }
-    public String getDate() { return date; }
-    public String getTime() { return time; }
-    public String getClientId() { return clientId; }
-    public String getEmployeeId() { return employeeId; }
-    public String getServiceId() { return serviceId; }
+    public String getAppointmentId() {
+        return appointmentId;
+    }
 
-    // Builder class
-    public static class Builder {
+    public LocalDate getAppointmentDate() {
+        return appointmentDate;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public Stylist getStylist() {
+        return stylist;
+    }
+
+    public AppointmentStatus getStatus() {
+        return status;
+    }
+
+    public static class Builder{
         private String appointmentId;
-        private String date;
-        private String time;
-        private String clientId;
-        private String employeeId;
-        private String serviceId;
+        private LocalDate appointmentDate;
+        private LocalTime startTime;
+        private LocalTime endTime;
+        private AppointmentStatus status;
+        private String notes;
+        private LocalDateTime createdAt;
+        private Customer customer;
+        private Stylist stylist;
 
         public Builder setAppointmentId(String appointmentId) {
             this.appointmentId = appointmentId;
             return this;
         }
 
-        public Builder setDate(String date) {
-            this.date = date;
+        public Builder setAppointmentDate(LocalDate appointmentDate) {
+            this.appointmentDate = appointmentDate;
             return this;
         }
 
-        public Builder setTime(String time) {
-            this.time = time;
+        public Builder setStartTime(LocalTime startTime) {
+            this.startTime = startTime;
             return this;
         }
 
-        public Builder setClientId(String clientId) {
-            this.clientId = clientId;
+        public Builder setEndTime(LocalTime endTime) {
+            this.endTime = endTime;
             return this;
         }
 
-        public Builder setEmployeeId(String employeeId) {
-            this.employeeId = employeeId;
+        public Builder setNotes(String notes) {
+            this.notes = notes;
             return this;
         }
 
-        public Builder setServiceId(String serviceId) {
-            this.serviceId = serviceId;
+        public Builder setCreatedAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder setStatus(AppointmentStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder setCustomer(Customer customer) {
+            this.customer = customer;
+            return this;
+        }
+
+        public Builder setStylist(Stylist stylist) {
+            this.stylist = stylist;
             return this;
         }
 
