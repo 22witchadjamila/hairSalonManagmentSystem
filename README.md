@@ -80,4 +80,4 @@ Handles recorded payments for completed appointments, including method and amoun
 ---
 
 ## 📊 **UML Class Diagram**
-<img width="820" height="500" alt="assignment1UML.png" src="https://github.com/user-attachments/assets/45ff7d3d-ce16-4cc6-a74a-10b74b707185" />
+<img width="1980" height="1800" alt="assignment1UML" src="https://github.com/user-attachments/assets/860ca28a-36cb-4f49-9b79-9fb5def4e2a6" />
