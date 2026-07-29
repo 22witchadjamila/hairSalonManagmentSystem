@@ -6,31 +6,33 @@ import za.ac.cput.domain.Service;
  Author: Witcha Francisco (222894822)
  Date: 26/03/2026
 */
+
+
+import za.ac.cput.domain.Service;
+import za.ac.cput.domain.enums.ServiceCategory;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
 public class ServiceFactory {
 
-        public static Service createService (String Id, String name,double price, int duration) throws IllegalArgumentException {
+    public static Service buildService(String name, String description,
+                                       int durationMinutes, BigDecimal price,
+                                       ServiceCategory category) {
+        if (name == null || name.isBlank()) return null;
+        if (durationMinutes <= 0) return null;
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) return null;
+        if (category == null) return null;
 
-            if (Id == null || Id.isEmpty())
-                throw new IllegalArgumentException("Service ID is required");
-
-            if (name == null || name.isEmpty())
-                throw new IllegalArgumentException("Service name is required");
-
-            if (price <= 0)
-                throw new IllegalArgumentException("Price must be greater than 0");
-
-            if (duration <= 0)
-                throw new IllegalArgumentException("Duration must be greater than 0");
-
-
-            return new Service.Builder()
-
-                    .setServiceId(Id)
-                    .setServiceName(name)
-                    .setPrice(price)
-                    .setDuration(duration)
-                    .build();
-
-        }
+        return new Service.Builder()
+                .setServiceId(UUID.randomUUID().toString())
+                .setName(name.trim())
+                .setDescription(description)
+                .setDurationMinutes(durationMinutes)
+                .setPrice(price)
+                .setCategory(category)
+                .setActive(true)
+                .build();
     }
+}
 
