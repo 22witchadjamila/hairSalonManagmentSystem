@@ -6,64 +6,79 @@
 
 package za.ac.cput.domain;
 
+import jakarta.persistence.*;
+
+import java.time.*;
+
+@Entity
+@Table(name = "customers")
 public class Customer {
+
+    @Id
     private String customerId;
-    private String name;
-    private String phoneNumber;
+
+    private String firstName;
+    private String lastName;
     private String email;
+    private String phoneNumber;
+    private LocalDate dateOfBirth;
+    private LocalDateTime registeredAt;
 
-    private Customer(){}
+    protected Customer(){}
 
-    private Customer(Builder builder){
+    public Customer(Builder builder){
         this.customerId = builder.customerId;
-        this.name = builder.name;
-        this.phoneNumber = builder.phoneNumber;
+        this.firstName = builder.firstName;
+        this.lastName = builder.lastName;
         this.email = builder.email;
+        this.phoneNumber = builder.phoneNumber;
+        this.dateOfBirth = builder.dateOfBirth;
+        this.registeredAt = builder.registeredAt;
     }
+
     public String getCustomerId() {
         return customerId;
     }
-
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getLastName() {
+        return lastName;
     }
-
     public String getEmail() {
         return email;
     }
-
-    @Override
-    public String toString() {
-        return "Customer{" +
-                "customerId='" + customerId + '\'' +
-                ", name='" + name + '\'' +
-                ", phoneNumber=" + phoneNumber +
-                ", email='" + email + '\'' +
-                '}';
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+    public LocalDateTime getRegisteredAt() {
+        return registeredAt;
     }
 
-    public static class Builder{
+    public static class Builder {
         private String customerId;
-        private String name;
-        private String phoneNumber;
+        private String firstName;
+        private String lastName;
         private String email;
+        private String phoneNumber;
+        private LocalDate dateOfBirth;
+        private LocalDateTime registeredAt;
 
         public Builder setCustomerId(String customerId) {
             this.customerId = customerId;
             return this;
         }
 
-        public Builder setName(String name) {
-            this.name = name;
+        public Builder setFirstName(String firstName) {
+            this.firstName = firstName;
             return this;
         }
 
-        public Builder setPhoneNumber(String phoneNumber) {
-            this.phoneNumber = phoneNumber;
+        public Builder setLastName(String lastName) {
+            this.lastName = lastName;
             return this;
         }
 
@@ -72,7 +87,22 @@ public class Customer {
             return this;
         }
 
-        public Customer build(){
+        public Builder setPhoneNumber(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+            return this;
+        }
+
+        public Builder setDateOfBirth(LocalDate dateOfBirth) {
+            this.dateOfBirth = dateOfBirth;
+            return this;
+        }
+
+        public Builder setRegisteredAt(LocalDateTime registeredAt) {
+            this.registeredAt = registeredAt;
+            return this;
+        }
+
+        public Customer build() {
             return new Customer(this);
         }
     }
