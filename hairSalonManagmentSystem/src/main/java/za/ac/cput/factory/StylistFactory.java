@@ -10,19 +10,46 @@ package za.ac.cput.factory;
 
 import za.ac.cput.domain.Stylist;
 
+import java.util.UUID;
+
+
 public class StylistFactory {
 
-    public static Stylist createStylist(int stylistId, String name, String speciality, int experienceYears) {
-
-        if (stylistId <= 0 || name == null || name.isEmpty()) {
-            return null;
-        }
+    public static Stylist buildStylist(String firstName, String lastName,
+                                       String email, String phoneNumber,
+                                       String speciality) {
+        if (firstName == null || firstName.isBlank()) return null;
+        if (lastName == null || lastName.isBlank()) return null;
+        if (email == null || !email.contains("@")) return null;
+        if (phoneNumber == null || phoneNumber.isBlank()) return null;
 
         return new Stylist.Builder()
-                .setStylistId(stylistId)
-                .setName(name)
+                .setStylistId(UUID.randomUUID().toString())
+                .setFirstName(firstName.trim())
+                .setLastName(lastName.trim())
+                .setEmail(email.trim().toLowerCase())
+                .setPhoneNumber(phoneNumber.trim())
+                .setSpeciality(speciality.trim())
+                .setActive(true)
+                .build();
+    }
+
+    public static Stylist buildStylistWithBio(String firstName, String lastName,
+                                              String email, String phoneNumber,
+                                              String speciality, String bio) {
+        if (firstName == null || firstName.isBlank()) return null;
+        if (lastName == null || lastName.isBlank()) return null;
+        if (email == null || !email.contains("@")) return null;
+
+        return new Stylist.Builder()
+                .setStylistId(UUID.randomUUID().toString())
+                .setFirstName(firstName.trim())
+                .setLastName(lastName.trim())
+                .setEmail(email.trim().toLowerCase())
+                .setPhoneNumber(phoneNumber)
                 .setSpeciality(speciality)
-                .setExperienceYears(experienceYears)
+//                .setBio(bio)
+                .setActive(true)
                 .build();
     }
 }
