@@ -1,7 +1,7 @@
 package za.ac.cput.domain;
 
 import jakarta.persistence.*;
-import za.ac.cput.hairappointment.domain.enums.AppointmentStatus;
+import za.ac.cput.domain.enums.AppointmentStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
