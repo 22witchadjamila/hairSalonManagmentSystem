@@ -4,90 +4,84 @@ package za.ac.cput.domain;
  Author: Witcha Francisco (222894822)
  Date: 23/03/2026
 */
-public class Service{
+import jakarta.persistence.*;
+import za.ac.cput.domain.enums.ServiceCategory;
+
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "services")
+public class Service {
+
+    @Id
     private String serviceId;
-    private String serviceName;
-    private double price;
-    private int duration;
+    private String name;
+    private String description;
+    private int durationMinutes;
+    private BigDecimal price;
 
-    // builder constructor
-    private Service(Builder builder) {
-        this.serviceId = builder.serviceId;
-        this.serviceName = builder.serviceName;
-        this.price = builder.price;
-        this.duration = builder.duration;
+    @Enumerated(EnumType.STRING)
+    private ServiceCategory category;
+
+    private boolean isActive;
+
+    protected Service() {}
+
+    public Service(Builder builder) {
+        this.serviceId       = builder.serviceId;
+        this.name            = builder.name;
+        this.description     = builder.description;
+        this.durationMinutes = builder.durationMinutes;
+        this.price           = builder.price;
+        this.category        = builder.category;
+        this.isActive        = builder.isActive;
     }
 
-    public String getServiceId() {
-        return serviceId;
-    }
-
-    public String getServiceName() {
-
-        return serviceName;
-    }
-
-    public double getPrice() {
-
-        return price;
-    }
-
-
-
-    public int getDuration() {
-
-        return duration;
-    }
-    @Override
-    public String toString() {
-        return "Service{" +
-                "serviceId='" + serviceId + '\'' +
-                ", serviceName='" + serviceName + '\'' +
-                ", price=" + price +
-                ", duration=" + duration +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Service)) return false;
-        Service service = (Service) o;
-        return serviceId != null && serviceId.equals(service.serviceId);
-    }
-
-    @Override
-    public int hashCode() {
-        return serviceId != null ? serviceId.hashCode() : 0;
-    }
+    public String getServiceId()         { return serviceId; }
+    public String getName()              { return name; }
+    public String getDescription()       { return description; }
+    public int getDurationMinutes()      { return durationMinutes; }
+    public BigDecimal getPrice()         { return price; }
+    public ServiceCategory getCategory() { return category; }
+    public boolean isActive()            { return isActive; }
 
     public static class Builder {
         private String serviceId;
-        private String serviceName;
-        private double price;
-        private int duration;
-
+        private String name;
+        private String description;
+        private int durationMinutes;
+        private BigDecimal price;
+        private ServiceCategory category;
+        private boolean isActive;
 
         public Builder setServiceId(String serviceId) {
             this.serviceId = serviceId;
             return this;
         }
-
-        public Builder setServiceName(String serviceName) {
-            this.serviceName = serviceName;
+        public Builder setName(String name) {
+            this.name = name;
             return this;
         }
-
-        public Builder setPrice(double price) {
+        public Builder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+        public Builder setDurationMinutes(int durationMinutes) {
+            this.durationMinutes = durationMinutes;
+            return this;
+        }
+        public Builder setPrice(BigDecimal price) {
             this.price = price;
             return this;
         }
-
-        public Builder setDuration(int duration) {
-            this.duration = duration;
+        public Builder setCategory(ServiceCategory category) {
+            this.category = category;
             return this;
         }
-
+        public Builder setActive(boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
         public Service build() {
             return new Service(this);
         }
