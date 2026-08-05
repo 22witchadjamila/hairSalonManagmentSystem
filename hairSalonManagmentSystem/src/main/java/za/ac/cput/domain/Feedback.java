@@ -55,22 +55,28 @@ public class Feedback {
             this.reviewId = reviewId; return this;
         }
         public Builder setRating(int rating) {
-            this.rating = rating; return this;
+            this.rating = rating;
+            return this;
         }
         public Builder setComment(String comment) {
-            this.comment = comment; return this;
+            this.comment = comment;
+            return this;
         }
         public Builder setSubmittedAt(LocalDateTime submittedAt) {
-            this.submittedAt = submittedAt; return this;
+            this.submittedAt = submittedAt;
+            return this;
         }
         public Builder setVerified(boolean isVerified) {
-            this.isVerified = isVerified; return this;
+            this.isVerified = isVerified;
+            return this;
         }
         public Builder setAppointment(Appointment appointment) {
-            this.appointment = appointment; return this;
+            this.appointment = appointment;
+            return this;
         }
         public Builder setCustomer(Customer customer) {
-            this.customer = customer; return this;
+            this.customer = customer;
+            return this;
         }
         public Feedback build() {
             return new Feedback(this);

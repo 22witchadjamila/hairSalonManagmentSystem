@@ -1,5 +1,6 @@
 /* Customer.java
-- Domain model class representing a Customer entity with attributes and Builder pattern for object creation.
+- Domain model class representing a Customer entity with attributes and
+Builder pattern for object creation.
  Author: Marc Kabala
  Date: 20 March 2026
  */
