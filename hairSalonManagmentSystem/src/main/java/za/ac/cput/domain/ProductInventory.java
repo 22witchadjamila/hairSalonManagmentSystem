@@ -1,8 +1,6 @@
 package za.ac.cput.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
@@ -20,6 +18,10 @@ public class ProductInventory {
     private BigDecimal costPrice;
     private BigDecimal sellingPrice;
 
+    @ManyToOne
+    @JoinColumn(name = "service_id")
+    private SalonService salonService;
+
     protected ProductInventory() {}
 
     public ProductInventory(Builder builder) {
@@ -31,6 +33,7 @@ public class ProductInventory {
         this.reorderLevel  = builder.reorderLevel;
         this.costPrice     = builder.costPrice;
         this.sellingPrice  = builder.sellingPrice;
+        this.salonService   = builder.salonService;
     }
 
     public String getProductId()        { return productId; }
@@ -41,6 +44,7 @@ public class ProductInventory {
     public int getReorderLevel()        { return reorderLevel; }
     public BigDecimal getCostPrice()    { return costPrice; }
     public BigDecimal getSellingPrice() { return sellingPrice; }
+    public SalonService getSalonService() {return salonService;}
 
     public static class Builder {
         private String productId;
@@ -51,6 +55,7 @@ public class ProductInventory {
         private int reorderLevel;
         private BigDecimal costPrice;
         private BigDecimal sellingPrice;
+        private SalonService salonService;
 
         public Builder setProductId(String productId) {
             this.productId = productId; return this;
@@ -83,6 +88,8 @@ public class ProductInventory {
         public Builder setSellingPrice(BigDecimal sellingPrice) {
             this.sellingPrice = sellingPrice; return this;
         }
+
+        public Builder setSalonService(SalonService salonService) {this.salonService = salonService; return this;}
 
         public ProductInventory build() {
             return new ProductInventory(this);
