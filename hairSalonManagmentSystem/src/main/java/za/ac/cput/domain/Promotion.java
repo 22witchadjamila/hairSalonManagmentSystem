@@ -87,6 +87,7 @@ public class Promotion {
             this.usageCount = usageCount; return this;
         }
 
-        public Promotion build() { return new Promotion(this); }
+        public Promotion build() {
+            return new Promotion(this); }
     }
 }
