@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "services")
-public class Service {
+public class SalonService {
 
     @Id
     private String serviceId;
@@ -25,9 +25,9 @@ public class Service {
 
     private boolean isActive;
 
-    protected Service() {}
+    protected SalonService() {}
 
-    public Service(Builder builder) {
+    public SalonService(Builder builder) {
         this.serviceId       = builder.serviceId;
         this.name            = builder.name;
         this.description     = builder.description;
@@ -82,8 +82,8 @@ public class Service {
             this.isActive = isActive;
             return this;
         }
-        public Service build() {
-            return new Service(this);
+        public SalonService build() {
+            return new SalonService(this);
         }
     }
 }
