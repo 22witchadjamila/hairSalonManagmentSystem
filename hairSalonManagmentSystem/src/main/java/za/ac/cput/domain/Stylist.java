@@ -14,7 +14,6 @@ import jakarta.persistence.*;
 public class Stylist {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String stylistId;
     private String firstName;
     private String lastName;
@@ -22,15 +21,6 @@ public class Stylist {
     private String phoneNumber;
     private String specialty;
     private boolean isActive;
-
-    @ManyToOne
-    @JoinColumn(name = "appointment_appointment_id")
-    private Appointment appointment;
-
-    public Appointment getAppointment() {
-        return appointment;
-    }
-
 
     public Stylist() {}
 
