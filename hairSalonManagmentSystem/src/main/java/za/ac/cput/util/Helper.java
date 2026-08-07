@@ -1,6 +1,11 @@
 package za.ac.cput.util;
 
+import za.ac.cput.domain.enums.DiscountType;
+import za.ac.cput.domain.enums.LoyaltyTier;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -55,5 +60,60 @@ public class Helper {
     public static boolean isValidPhoneNumber(String phoneNumber){
         return !isNullOrEmpty(phoneNumber) &&
                 PHONE_PATTERN.matcher(phoneNumber.trim()).matches();
+    }
+
+    /** Generates a new random unique ID, used as the primary key for every entity*/
+    public static String generateId(){
+        return UUID.randomUUID().toString();
+    }
+
+    /** Generates a unique, human-scannable transaction reference for a Payment, e.g.TXN-1893XXXXXX-AB12.*/
+    public static String generateTransactionReference(){
+        String randomSuffix = UUID.randomUUID().toString()
+                .substring(0, 4)
+                .toUpperCase();
+        return "TXN-" + System.currentTimeMillis() + "-" +randomSuffix;
+    }
+
+    /**
+     * Calculates the discount amount for a given base amount, never exceeding the amount itself.
+     * PERCENTAGE treats discountValue as a percent (e.g. 20 = 20%); FIXED_AMOUNT treats it
+     * as a flat Rand Value.*/
+    public static BigDecimal calculateDiscount(BigDecimal amount, DiscountType type,
+                                               BigDecimal discountValue){
+        if(!isValidAmount(amount) || type == null || discountValue == null
+                || discountValue.compareTo(BigDecimal.ZERO) < 0){
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal discount = switch(type){
+            case PERCENTAGE -> amount.multiply(discountValue)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            case FIXED_AMOUNT -> discountValue;
+        };
+
+        return discount.min(amount);
+    }
+
+    /** Subtracts the discount from the amount, floored at zero*/
+    public static BigDecimal calculateFinalAmount(BigDecimal amount, BigDecimal discount){
+        if(!isValidAmount(amount)) return BigDecimal.ZERO;
+        BigDecimal safeDiscount = discount ==  null ? BigDecimal.ZERO : discount;
+        BigDecimal finalAmount = amount.subtract(safeDiscount);
+        return finalAmount.max(BigDecimal.ZERO);
+    }
+
+    /** 1 loyalty point earned per R10 spent, rounded down*/
+    public static int calculateLoyaltyPointsEarned(BigDecimal amountSpent){
+        if (!isValidAmount(amountSpent)) return 0;
+        return amountSpent.divide(POINTS_PER_RAND_SPENT, 0, RoundingMode.DOWN).intValue();
+    }
+
+    /** Maps a customer's total lifetime points to their loyalty tier. */
+    public static LoyaltyTier determineLoyaltyTier(int totalPoints){
+        if (totalPoints >= PLATINUM_THRESHOLD) return LoyaltyTier.PLATINUM;
+        if (totalPoints >= GOLD_THRESHOLD) return LoyaltyTier.GOLD;
+        if(totalPoints >= SILVER_THRESHOLD) return LoyaltyTier.SILVER;
+        return LoyaltyTier.BRONZE;
     }
 }
