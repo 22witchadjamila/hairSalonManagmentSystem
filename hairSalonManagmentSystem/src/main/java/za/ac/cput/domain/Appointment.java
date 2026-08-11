@@ -2,7 +2,9 @@ package za.ac.cput.domain;
 
 import jakarta.persistence.*;
 import za.ac.cput.domain.enums.AppointmentStatus;
+import za.ac.cput.domain.valueobject.TimeSlot;
 
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -15,8 +17,9 @@ public class Appointment {
     private String appointmentId;
 
     private LocalDate appointmentDate;
-    private LocalTime startTime;
-    private LocalTime endTime;
+
+    @Embedded
+    private TimeSlot timeSlot;
 
     @Enumerated(EnumType.STRING)
     private AppointmentStatus status;
@@ -31,6 +34,7 @@ public class Appointment {
     @ManyToOne
     @JoinColumn(name = "stylist_id")
     private Stylist stylist;
+
 
     protected Appointment() {}
 
