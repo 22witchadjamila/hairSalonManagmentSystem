@@ -25,7 +25,7 @@ public class Payment {
     private Money discount;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "finalAmount"))
+    @AttributeOverride(name = "value", column = @Column(name = "final_amount"))
     private Money finalAmount;
 
     @Enumerated(EnumType.STRING)
