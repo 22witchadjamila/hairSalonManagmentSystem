@@ -1,8 +1,4 @@
-/* Payment.java
-   Payment model class
-   Author: Reece Josephs [218152701]
-   Date: [23 March 2025]
-*/
+
 
 package za.ac.cput.domain;
 
@@ -20,9 +16,7 @@ public class Payment {
     @Id
     private String paymentId;
 
-    private BigDecimal amount;
-    private BigDecimal discount;
-    private BigDecimal finalAmount;
+
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
@@ -45,9 +39,7 @@ public class Payment {
 
     public Payment(Builder builder){
         this.paymentId      = builder.paymentId;
-        this.amount         = builder.amount;
-        this.discount       = builder.discount;
-        this.finalAmount    = builder.finalAmount;
+
         this.method         = builder.method;
         this.status         = builder.status;
         this.paidAt         = builder.paidAt;
@@ -60,17 +52,7 @@ public class Payment {
         return paymentId;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
 
-    public BigDecimal getDiscount() {
-        return discount;
-    }
-
-    public BigDecimal getFinalAmount() {
-        return finalAmount;
-    }
 
     public LocalDateTime getPaidAt() {
         return paidAt;
@@ -90,9 +72,7 @@ public class Payment {
 
     public static class Builder{
         private String paymentId;
-        private BigDecimal amount;
-        private BigDecimal discount;
-        private BigDecimal finalAmount;
+
         private PaymentMethod method;
         private PaymentStatus status;
         private LocalDateTime paidAt;
@@ -105,20 +85,7 @@ public class Payment {
             return this;
         }
 
-        public Builder setAmount(BigDecimal amount) {
-            this.amount = amount;
-            return this;
-        }
 
-        public Builder setDiscount(BigDecimal discount) {
-            this.discount = discount;
-            return this;
-        }
-
-        public Builder setFinalAmount(BigDecimal finalAmount) {
-            this.finalAmount = finalAmount;
-            return this;
-        }
 
         public Builder setPaidAt(LocalDateTime paidAt) {
             this.paidAt = paidAt;
