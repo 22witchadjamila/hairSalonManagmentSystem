@@ -18,11 +18,11 @@ public class ProductInventory {
     private int reorderLevel;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "costPrice"))
+    @AttributeOverride(name = "value", column = @Column(name = "cost_price"))
     private Money costPrice;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "sellingPrice"))
+    @AttributeOverride(name = "value", column = @Column(name = "selling_price"))
     private Money sellingPrice;
 
     @ManyToOne
