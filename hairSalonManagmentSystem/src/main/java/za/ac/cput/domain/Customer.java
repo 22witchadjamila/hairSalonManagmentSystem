@@ -8,6 +8,7 @@ Builder pattern for object creation.
 package za.ac.cput.domain;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.valueobject.Email;
 
 import java.time.*;
 
@@ -20,7 +21,16 @@ public class Customer {
 
     private String firstName;
     private String lastName;
-    private String email;
+
+    /**
+     *The @AttributeOverride annotation renames a database column from an embedded object. In your code,
+     * it changes the column name for the value field inside the Email class to email in the main table.
+     * This stops column name clashes when you embed the same object more than once.
+     * */
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "email"))
+    private Email email;
+
     private String phoneNumber;
     private LocalDate dateOfBirth;
     private LocalDateTime registeredAt;
