@@ -1,6 +1,7 @@
 package za.ac.cput.domain;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.valueobject.Money;
 
 import java.math.BigDecimal;
 
@@ -15,8 +16,14 @@ public class ProductInventory {
     private String category;
     private int stockQuantity;
     private int reorderLevel;
-    private BigDecimal costPrice;
-    private BigDecimal sellingPrice;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "costPrice"))
+    private Money costPrice;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "sellingPrice"))
+    private Money sellingPrice;
 
     @ManyToOne
     @JoinColumn(name = "service_id")
@@ -31,8 +38,8 @@ public class ProductInventory {
         this.category      = builder.category;
         this.stockQuantity = builder.stockQuantity;
         this.reorderLevel  = builder.reorderLevel;
-        this.costPrice     = builder.costPrice;
-        this.sellingPrice  = builder.sellingPrice;
+        this.costPrice    = builder.costPrice;
+        this.sellingPrice = builder.sellingPrice;
         this.salonService   = builder.salonService;
     }
 
@@ -42,8 +49,9 @@ public class ProductInventory {
     public String getCategory()         { return category; }
     public int getStockQuantity()       { return stockQuantity; }
     public int getReorderLevel()        { return reorderLevel; }
-    public BigDecimal getCostPrice()    { return costPrice; }
-    public BigDecimal getSellingPrice() { return sellingPrice; }
+    public Money getCostPrice()         {return costPrice;}
+    public Money getSellingPrice()      {return sellingPrice;}
+
     public SalonService getSalonService() {return salonService;}
 
     public static class Builder {
@@ -53,8 +61,8 @@ public class ProductInventory {
         private String category;
         private int stockQuantity;
         private int reorderLevel;
-        private BigDecimal costPrice;
-        private BigDecimal sellingPrice;
+        private Money costPrice;
+        private Money sellingPrice;
         private SalonService salonService;
 
         public Builder setProductId(String productId) {
@@ -81,12 +89,14 @@ public class ProductInventory {
             this.reorderLevel = reorderLevel; return this;
         }
 
-        public Builder setCostPrice(BigDecimal costPrice) {
-            this.costPrice = costPrice; return this;
+        public Builder setCostPrice(Money costPrice) {
+            this.costPrice = costPrice;
+            return this;
         }
 
-        public Builder setSellingPrice(BigDecimal sellingPrice) {
-            this.sellingPrice = sellingPrice; return this;
+        public Builder setSellingPrice(Money sellingPrice) {
+            this.sellingPrice = sellingPrice;
+            return this;
         }
 
         public Builder setSalonService(SalonService salonService) {this.salonService = salonService; return this;}
