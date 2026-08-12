@@ -2,6 +2,7 @@ package za.ac.cput.domain;
 
 import jakarta.persistence.*;
 import za.ac.cput.domain.enums.DiscountType;
+import za.ac.cput.domain.valueobject.DateRange;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,8 +20,10 @@ public class Promotion {
     private DiscountType discountType;
 
     private BigDecimal discountValue;
-    private LocalDate startDate;
-    private LocalDate endDate;
+
+    @Enumerated
+    private DateRange dateRange;
+
     private int usageLimit;
     private int usageCount;
 
@@ -32,8 +35,7 @@ public class Promotion {
         this.description   = builder.description;
         this.discountType  = builder.discountType;
         this.discountValue = builder.discountValue;
-        this.startDate     = builder.startDate;
-        this.endDate       = builder.endDate;
+        this.dateRange = builder.dateRange;
         this.usageLimit    = builder.usageLimit;
         this.usageCount    = builder.usageCount;
     }
@@ -43,8 +45,7 @@ public class Promotion {
     public String getDescription()        { return description; }
     public DiscountType getDiscountType() { return discountType; }
     public BigDecimal getDiscountValue()  { return discountValue; }
-    public LocalDate getStartDate()       { return startDate; }
-    public LocalDate getEndDate()         { return endDate; }
+    public DateRange getDateRange()       {return dateRange;}
     public int getUsageLimit()            { return usageLimit; }
     public int getUsageCount()            { return usageCount; }
 
@@ -54,10 +55,10 @@ public class Promotion {
         private String description;
         private DiscountType discountType;
         private BigDecimal discountValue;
-        private LocalDate startDate;
-        private LocalDate endDate;
+        private DateRange dateRange;
         private int usageLimit;
         private int usageCount;
+
 
         public Builder setPromotionId(String promotionId) {
             this.promotionId = promotionId; return this;
@@ -74,12 +75,12 @@ public class Promotion {
         public Builder setDiscountValue(BigDecimal discountValue) {
             this.discountValue = discountValue; return this;
         }
-        public Builder setStartDate(LocalDate startDate) {
-            this.startDate = startDate; return this;
+
+        public Builder setDateRange(DateRange dateRange) {
+            this.dateRange = dateRange;
+            return this;
         }
-        public Builder setEndDate(LocalDate endDate) {
-            this.endDate = endDate; return this;
-        }
+
         public Builder setUsageLimit(int usageLimit) {
             this.usageLimit = usageLimit; return this;
         }
@@ -88,6 +89,7 @@ public class Promotion {
         }
 
         public Promotion build() {
-            return new Promotion(this); }
+            return new Promotion(this);
+        }
     }
 }
