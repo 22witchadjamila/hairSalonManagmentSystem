@@ -9,6 +9,7 @@ package za.ac.cput.domain;
 
 import jakarta.persistence.*;
 import za.ac.cput.domain.valueobject.Email;
+import za.ac.cput.domain.valueobject.PhoneNumber;
 
 import java.time.*;
 
@@ -31,7 +32,10 @@ public class Customer {
     @AttributeOverride(name = "value", column = @Column(name = "email"))
     private Email email;
 
-    private String phoneNumber;
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number"))
+    private PhoneNumber phoneNumber;
+
     private LocalDate dateOfBirth;
     private LocalDateTime registeredAt;
 
@@ -41,8 +45,6 @@ public class Customer {
         this.customerId = builder.customerId;
         this.firstName = builder.firstName;
         this.lastName = builder.lastName;
-        this.email = builder.email;
-        this.phoneNumber = builder.phoneNumber;
         this.dateOfBirth = builder.dateOfBirth;
         this.registeredAt = builder.registeredAt;
     }
@@ -56,25 +58,21 @@ public class Customer {
     public String getLastName() {
         return lastName;
     }
-    public String getEmail() {
-        return email;
-    }
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
     public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
     public LocalDateTime getRegisteredAt() {
         return registeredAt;
     }
+    public Email getEmail() {return email;}
+    public PhoneNumber getPhoneNumber() {return phoneNumber;}
 
     public static class Builder {
         private String customerId;
         private String firstName;
         private String lastName;
-        private String email;
-        private String phoneNumber;
+        private Email email;
+        private PhoneNumber phoneNumber;
         private LocalDate dateOfBirth;
         private LocalDateTime registeredAt;
 
@@ -93,12 +91,12 @@ public class Customer {
             return this;
         }
 
-        public Builder setEmail(String email) {
+        public Builder setEmail(Email email) {
             this.email = email;
             return this;
         }
 
-        public Builder setPhoneNumber(String phoneNumber) {
+        public Builder setPhoneNumber(PhoneNumber phoneNumber) {
             this.phoneNumber = phoneNumber;
             return this;
         }
