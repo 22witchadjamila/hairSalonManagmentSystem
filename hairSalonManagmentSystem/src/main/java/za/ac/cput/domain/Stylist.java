@@ -8,6 +8,8 @@ Date: 20 March 2026
 package za.ac.cput.domain;
 
 import jakarta.persistence.*;
+import za.ac.cput.domain.valueobject.Email;
+import za.ac.cput.domain.valueobject.PhoneNumber;
 
 @Entity
 @Table(name = "stylists")
@@ -17,8 +19,15 @@ public class Stylist {
     private String stylistId;
     private String firstName;
     private String lastName;
-    private String email;
-    private String phoneNumber;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "email"))
+    private Email email;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "phoneNumber"))
+    private PhoneNumber phoneNumber;
+
     private String specialty;
     private boolean isActive;
 
@@ -46,13 +55,11 @@ public class Stylist {
         return lastName;
     }
 
-    public String getEmail() {
-        return email;
-    }
+    public Email getEmail() {return email;}
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
+    public PhoneNumber getPhoneNumber() {return phoneNumber;}
+
+    public String getSpecialty() {return specialty;}
 
     public String getSpeciality() {
         return specialty;
@@ -66,8 +73,8 @@ public class Stylist {
         private String stylistId;
         private String firstName;
         private String lastName;
-        private String email;
-        private String phoneNumber;
+        private Email email;
+        private PhoneNumber phoneNumber;
         private String specialty;
         private boolean isActive;
 
@@ -86,16 +93,20 @@ public class Stylist {
             return this;
         }
 
-        public Builder setEmail(String email) {
+        public Builder setEmail(Email email) {
             this.email = email;
             return this;
         }
 
-        public Builder setPhoneNumber(String phoneNumber) {
+        public Builder setPhoneNumber(PhoneNumber phoneNumber) {
             this.phoneNumber = phoneNumber;
             return this;
         }
 
+        public Builder setSpecialty(String specialty) {
+            this.specialty = specialty;
+            return this;
+        }
 
         public Builder setSpeciality(String speciality) {
             this.specialty = speciality;
@@ -108,7 +119,7 @@ public class Stylist {
         }
 
         public Stylist build() {
-            return new Stylist();
+            return new Stylist(this);
         }
 
     }
