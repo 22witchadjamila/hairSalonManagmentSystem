@@ -6,6 +6,7 @@ package za.ac.cput.domain;
 */
 import jakarta.persistence.*;
 import za.ac.cput.domain.enums.ServiceCategory;
+import za.ac.cput.domain.valueobject.Money;
 
 import java.math.BigDecimal;
 
@@ -18,7 +19,10 @@ public class SalonService {
     private String name;
     private String description;
     private int durationMinutes;
-    private BigDecimal price;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "price"))
+    private Money price;
 
     @Enumerated(EnumType.STRING)
     private ServiceCategory category;
@@ -32,7 +36,7 @@ public class SalonService {
         this.name            = builder.name;
         this.description     = builder.description;
         this.durationMinutes = builder.durationMinutes;
-        this.price           = builder.price;
+        this.price          = builder.price;
         this.category        = builder.category;
         this.isActive        = builder.isActive;
     }
@@ -41,7 +45,7 @@ public class SalonService {
     public String getName()              { return name; }
     public String getDescription()       { return description; }
     public int getDurationMinutes()      { return durationMinutes; }
-    public BigDecimal getPrice()         { return price; }
+    public Money getPrice()              {return price;}
     public ServiceCategory getCategory() { return category; }
     public boolean isActive()            { return isActive; }
 
@@ -50,7 +54,7 @@ public class SalonService {
         private String name;
         private String description;
         private int durationMinutes;
-        private BigDecimal price;
+        private Money price;
         private ServiceCategory category;
         private boolean isActive;
 
@@ -70,10 +74,12 @@ public class SalonService {
             this.durationMinutes = durationMinutes;
             return this;
         }
-        public Builder setPrice(BigDecimal price) {
+
+        public Builder setPrice(Money price) {
             this.price = price;
             return this;
         }
+
         public Builder setCategory(ServiceCategory category) {
             this.category = category;
             return this;
