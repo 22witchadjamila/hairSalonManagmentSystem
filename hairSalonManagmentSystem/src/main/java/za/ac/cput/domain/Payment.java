@@ -5,8 +5,8 @@ package za.ac.cput.domain;
 import jakarta.persistence.*;
 import za.ac.cput.domain.enums.PaymentMethod;
 import za.ac.cput.domain.enums.PaymentStatus;
+import za.ac.cput.domain.valueobject.Money;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,7 +16,17 @@ public class Payment {
     @Id
     private String paymentId;
 
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "amount"))
+    private Money amount;
 
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "discount"))
+    private Money discount;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "finalAmount"))
+    private Money finalAmount;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
@@ -39,7 +49,9 @@ public class Payment {
 
     public Payment(Builder builder){
         this.paymentId      = builder.paymentId;
-
+        this.amount        = builder.amount;
+        this.discount        = builder.discount;
+        this.finalAmount    = builder.finalAmount;
         this.method         = builder.method;
         this.status         = builder.status;
         this.paidAt         = builder.paidAt;
@@ -52,7 +64,11 @@ public class Payment {
         return paymentId;
     }
 
+    public Money getAmount() {return amount;}
 
+    public Money getDiscount() {return discount;}
+
+    public Money getFinalAmount() {return finalAmount;}
 
     public LocalDateTime getPaidAt() {
         return paidAt;
@@ -72,7 +88,9 @@ public class Payment {
 
     public static class Builder{
         private String paymentId;
-
+        private Money amount;
+        private Money discount;
+        private Money finalAmount;
         private PaymentMethod method;
         private PaymentStatus status;
         private LocalDateTime paidAt;
@@ -85,7 +103,20 @@ public class Payment {
             return this;
         }
 
+        public Builder setAmount(Money amount) {
+            this.amount = amount;
+            return this;
+        }
 
+        public Builder setDiscount(Money discount) {
+            this.discount = discount;
+            return this;
+        }
+
+            public Builder setFinalAmount(Money finalAmount) {
+            this.finalAmount = finalAmount;
+            return this;
+        }
 
         public Builder setPaidAt(LocalDateTime paidAt) {
             this.paidAt = paidAt;
