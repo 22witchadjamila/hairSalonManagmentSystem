@@ -25,7 +25,7 @@ public class Stylist {
     private Email email;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "phoneNumber"))
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number"))
     private PhoneNumber phoneNumber;
 
     private String specialty;
