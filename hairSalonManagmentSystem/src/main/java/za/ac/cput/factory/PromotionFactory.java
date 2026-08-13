@@ -2,10 +2,11 @@ package za.ac.cput.factory;
 
 import za.ac.cput.domain.Promotion;
 import za.ac.cput.domain.enums.DiscountType;
+import za.ac.cput.domain.valueobject.DateRange;
+import za.ac.cput.util.Helper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class PromotionFactory {
 
@@ -13,22 +14,21 @@ public class PromotionFactory {
                                            DiscountType discountType, BigDecimal discountValue,
                                            LocalDate startDate, LocalDate endDate,
                                            int usageLimit){
-        if (code == null || code.isBlank()) return null;
+        if (Helper.isNullOrEmpty(code)) return null;
         if (discountType == null) return null;
-        if (discountValue == null || discountValue.compareTo(BigDecimal.ZERO) <= 0) return null;
+        if (!Helper.isValidAmount(discountValue)) return null;
         if (discountType == DiscountType.PERCENTAGE
                 && discountValue.compareTo(BigDecimal.valueOf(100)) > 0) return null;
         if (startDate == null || endDate == null) return null;
         if (endDate.isBefore(startDate)) return null;
 
         return new Promotion.Builder()
-                .setPromotionId(UUID.randomUUID().toString())
+                .setPromotionId(Helper.generateId())
                 .setCode(code.toUpperCase().trim())
                 .setDescription(description)
                 .setDiscountType(discountType)
                 .setDiscountValue(discountValue)
-                .setStartDate(startDate)
-                .setEndDate(endDate)
+                .setDateRange(DateRange.of(startDate, endDate))
                 .setUsageLimit(usageLimit)
                 .setUsageCount(0)
                 .build();
