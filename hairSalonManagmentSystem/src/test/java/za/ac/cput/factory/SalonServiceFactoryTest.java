@@ -21,7 +21,7 @@ class SalonServiceFactoryTest {
     @Test
     @DisplayName("Should create a valid active service")
     void shouldCreateValidService() {
-        SalonService service = ServiceFactory.buildService(
+        SalonService service = SalonServiceFactory.buildService(
                 "Blowout", "Full blowout and style",
                 60, new BigDecimal("200.00"), ServiceCategory.STYLING);
         assertNotNull(service);
@@ -35,7 +35,7 @@ class SalonServiceFactoryTest {
     @Test
     @DisplayName("Should return null when name is blank")
     void shouldReturnNullWhenNameIsBlank() {
-        SalonService service = ServiceFactory.buildService(
+        SalonService service = SalonServiceFactory.buildService(
                 "", "desc", 60, new BigDecimal("200"), ServiceCategory.STYLING);
         assertNull(service);
     }
@@ -43,7 +43,7 @@ class SalonServiceFactoryTest {
     @Test
     @DisplayName("Should return null when duration is zero")
     void shouldReturnNullWhenDurationIsZero() {
-        SalonService service = ServiceFactory.buildService(
+        SalonService service = SalonServiceFactory.buildService(
                 "Cut", "desc", 0, new BigDecimal("100"), ServiceCategory.HAIRCUT);
         assertNull(service);
     }
@@ -51,7 +51,7 @@ class SalonServiceFactoryTest {
     @Test
     @DisplayName("Should return null when price is zero")
     void shouldReturnNullWhenPriceIsZero() {
-        SalonService service = ServiceFactory.buildService(
+        SalonService service = SalonServiceFactory.buildService(
                 "Cut", "desc", 30, BigDecimal.ZERO, ServiceCategory.HAIRCUT);
         assertNull(service);
     }
@@ -59,7 +59,7 @@ class SalonServiceFactoryTest {
     @Test
     @DisplayName("Should return null when price is negative")
     void shouldReturnNullWhenPriceIsNegative() {
-        SalonService service = ServiceFactory.buildService(
+        SalonService service = SalonServiceFactory.buildService(
                 "Cut", "desc", 30, new BigDecimal("-50"), ServiceCategory.HAIRCUT);
         assertNull(service);
     }
@@ -67,7 +67,7 @@ class SalonServiceFactoryTest {
     @Test
     @DisplayName("Should return null when category is null")
     void shouldReturnNullWhenCategoryIsNull() {
-        SalonService service = ServiceFactory.buildService(
+        SalonService service = SalonServiceFactory.buildService(
                 "Cut", "desc", 30, new BigDecimal("100"), null);
         assertNull(service);
     }

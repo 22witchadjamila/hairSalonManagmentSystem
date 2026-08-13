@@ -1,6 +1,12 @@
 package za.ac.cput.factory;
 
 import za.ac.cput.domain.SalonService;
+/*ServiceFactory.java
+ Service Factory  class
+ Author: Witcha Francisco (222894822)
+ Date: 26/03/2026
+*/
+
 import za.ac.cput.domain.enums.ServiceCategory;
 import za.ac.cput.domain.valueobject.Money;
 import za.ac.cput.util.Helper;
@@ -29,3 +35,4 @@ public class SalonServiceFactory {
     }
 
 }
+
