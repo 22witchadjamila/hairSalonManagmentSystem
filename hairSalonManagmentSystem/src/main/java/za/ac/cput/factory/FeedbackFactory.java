@@ -4,6 +4,7 @@ import za.ac.cput.domain.Appointment;
 import za.ac.cput.domain.Customer;
 import za.ac.cput.domain.Feedback;
 import za.ac.cput.domain.enums.AppointmentStatus;
+import za.ac.cput.util.Helper;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class FeedbackFactory {
         if(rating < 1 || rating > 5) return null;
 
         return new Feedback.Builder()
-                .setReviewId(UUID.randomUUID().toString())
+                .setReviewId(Helper.generateId())
                 .setAppointment(appointment)
                 .setCustomer(customer)
                 .setRating(rating)
