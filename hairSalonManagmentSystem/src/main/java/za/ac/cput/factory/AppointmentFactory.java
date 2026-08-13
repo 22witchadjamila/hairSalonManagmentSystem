@@ -2,31 +2,37 @@ package za.ac.cput.factory;
 
 import za.ac.cput.domain.Appointment;
 import za.ac.cput.domain.Customer;
+import za.ac.cput.domain.SalonService;
 import za.ac.cput.domain.Stylist;
 import za.ac.cput.domain.enums.AppointmentStatus;
+import za.ac.cput.domain.valueobject.TimeSlot;
+import za.ac.cput.util.Helper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 
 public class AppointmentFactory {
 
+    /** Duration is derived from the chosen SalonService, so an appointment's
+     * length can never drift from service it's booking. */
     public static Appointment buildAppointment(Customer customer, Stylist stylist,
-                                               LocalDate date, LocalTime startTime,
-                                               int durationMinutes, String notes) {
-        if(customer == null || stylist == null) return null;
+                                               SalonService salonService, LocalDate date,
+                                               LocalTime startTime, String notes) {
+        if(customer == null || stylist == null || salonService == null) return null;
         if(date == null || startTime == null) return null;
         if(date.isBefore(LocalDate.now())) return null;
-        if(durationMinutes <= 0) return null;
+
+        TimeSlot timeslot = TimeSlot.of(startTime,
+                startTime.plusMinutes(salonService.getDurationMinutes()));
 
         return new Appointment.Builder()
-                .setAppointmentId(UUID.randomUUID().toString())
+                .setAppointmentId(Helper.generateId())
                 .setCustomer(customer)
                 .setStylist(stylist)
+                .setSalonService(salonService)
                 .setAppointmentDate(date)
-                .setStartTime(startTime)
-                .setEndTime(startTime.plusMinutes(durationMinutes))
+                .setTimeSlot(timeslot)
                 .setStatus(AppointmentStatus.PENDING)
                 .setNotes(notes)
                 .setCreatedAt(LocalDateTime.now())
