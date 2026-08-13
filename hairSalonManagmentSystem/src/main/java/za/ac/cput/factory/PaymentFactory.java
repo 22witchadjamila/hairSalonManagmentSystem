@@ -11,9 +11,10 @@ import za.ac.cput.domain.Payment;
 import za.ac.cput.domain.Promotion;
 import za.ac.cput.domain.enums.PaymentMethod;
 import za.ac.cput.domain.enums.PaymentStatus;
+import za.ac.cput.domain.valueobject.Money;
+import za.ac.cput.util.Helper;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 public class PaymentFactory {
 
@@ -21,36 +22,44 @@ public class PaymentFactory {
                                        BigDecimal amount,
                                        PaymentMethod method) {
         if (appointment == null) return null;
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) return null;
+        if (!Helper.isValidAmount(amount)) return null;
         if (method == null) return null;
 
         return new Payment.Builder()
-                .setPaymentId(UUID.randomUUID().toString())
+                .setPaymentId(Helper.generateId())
                 .setAppointment(appointment)
-                .setAmount(amount)
-                .setDiscount(BigDecimal.ZERO)
-                .setFinalAmount(amount)
+                .setAmount(Money.of(amount))
+                .setDiscount(Money.of(BigDecimal.ZERO))
+                .setFinalAmount(Money.of(amount))
                 .setMethod(method)
                 .setStatus(PaymentStatus.PENDING)
+                .setTransactionRef(Helper.generateTransactionReference())
                 .build();
     }
 
     public static Payment buildPaymentWithPromotion(Appointment appointment,
                                                     BigDecimal amount,
-                                                    BigDecimal discount,
                                                     PaymentMethod method,
                                                     Promotion promotion){
-        if (appointment == null || amount == null || method == null) return null;
-        BigDecimal finalAmount = amount.subtract(discount != null ? discount : BigDecimal.ZERO);
+        if (appointment == null || method == null) return null;
+        if(!Helper.isValidAmount(amount)) return null;
+
+        BigDecimal discount = promotion == null ? BigDecimal.ZERO
+                : Helper.calculateDiscount(amount, promotion.getDiscountType(),
+                promotion.getDiscountValue());
+
+        BigDecimal finalAmount = Helper.calculateFinalAmount(amount, discount);
 
         return new Payment.Builder()
-                .setPaymentId(UUID.randomUUID().toString())
+                .setPaymentId(Helper.generateId())
                 .setAppointment(appointment)
-                .setAmount(amount)
-                .setDiscount(BigDecimal.ZERO)
-                .setFinalAmount(amount)
+                .setAmount(Money.of(amount))
+                .setDiscount(Money.of(discount))
+                .setFinalAmount(Money.of(finalAmount))
                 .setMethod(method)
                 .setStatus(PaymentStatus.PENDING)
+                .setTransactionRef(Helper.generateTransactionReference())
+                .setPromotion(promotion)
                 .build();
     }
 }
