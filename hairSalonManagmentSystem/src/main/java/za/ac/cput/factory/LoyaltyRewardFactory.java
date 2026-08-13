@@ -3,9 +3,9 @@ package za.ac.cput.factory;
 import za.ac.cput.domain.Customer;
 import za.ac.cput.domain.LoyaltyReward;
 import za.ac.cput.domain.enums.LoyaltyTier;
+import za.ac.cput.util.Helper;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class LoyaltyRewardFactory {
 
@@ -13,7 +13,7 @@ public class LoyaltyRewardFactory {
         if (customer == null) return null;
 
         return new LoyaltyReward.Builder()
-                .setLoyaltyId(UUID.randomUUID().toString())
+                .setLoyaltyId(Helper.generateId())
                 .setCustomer(customer)
                 .setPointsBalance(0)
                 .setTotalEarned(0)

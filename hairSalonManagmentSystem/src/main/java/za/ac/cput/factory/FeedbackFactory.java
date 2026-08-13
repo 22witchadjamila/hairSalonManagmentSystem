@@ -7,7 +7,6 @@ import za.ac.cput.domain.enums.AppointmentStatus;
 import za.ac.cput.util.Helper;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class FeedbackFactory {
 
