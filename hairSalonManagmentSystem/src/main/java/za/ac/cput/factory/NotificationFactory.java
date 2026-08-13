@@ -5,6 +5,7 @@ import za.ac.cput.domain.Notification;
 import za.ac.cput.domain.enums.NotificationChannel;
 import za.ac.cput.domain.enums.NotificationStatus;
 import za.ac.cput.domain.enums.NotificationType;
+import za.ac.cput.util.Helper;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -26,7 +27,7 @@ public class NotificationFactory {
                 LocalTime.of(9, 0));
 
         return new Notification.Builder()
-                .setNotificationId(UUID.randomUUID().toString())
+                .setNotificationId(Helper.generateId())
                 .setMessage(message)
                 .setType(NotificationType.APPOINTMENT_REMINDER)
                 .setChannel(channel)

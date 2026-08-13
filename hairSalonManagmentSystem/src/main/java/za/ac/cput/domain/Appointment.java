@@ -6,6 +6,7 @@ import za.ac.cput.domain.valueobject.TimeSlot;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "Appointment")
@@ -84,6 +85,14 @@ public class Appointment {
     public TimeSlot getTimeSlot() {return timeSlot;}
 
     public SalonService getSalonService() {return salonService;}
+
+    public LocalTime getStartTime() {
+        return timeSlot.getStartTime();
+    }
+
+    public LocalTime getEndTime() {
+        return timeSlot.getEndTime();
+    }
 
     public static class Builder{
         private String appointmentId;
