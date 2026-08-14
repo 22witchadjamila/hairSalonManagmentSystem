@@ -1,4 +1,7 @@
 package za.ac.cput.repository;
 
-public interface FeedbackRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import za.ac.cput.domain.Feedback;
+
+public interface FeedbackRepository extends JpaRepository<Feedback, String> {
 }

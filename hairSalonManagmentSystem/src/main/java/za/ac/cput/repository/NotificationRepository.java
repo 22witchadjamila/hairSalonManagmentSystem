@@ -1,4 +1,10 @@
 package za.ac.cput.repository;
 
-public interface NotificationRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import za.ac.cput.domain.Notification;
+
+import java.util.List;
+
+public interface NotificationRepository extends JpaRepository<Notification, String> {
+    List<Notification> findByAppointment_AppointmentId(String  appointmentId);
 }
