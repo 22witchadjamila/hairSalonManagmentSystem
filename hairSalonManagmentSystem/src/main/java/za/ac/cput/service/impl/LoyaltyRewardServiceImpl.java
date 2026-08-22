@@ -85,7 +85,7 @@ public class LoyaltyRewardServiceImpl implements ILoyaltyRewardService {
     public LoyaltyReward redeemPoints(String customerId, int points) {
         LoyaltyReward existing = getOrCreate(customerId);
         if (points <= 0 || points > existing.getPointsBalance()) {
-            throw new InvalidOperationException("Cannot redeem " + points + " points; balance is "
+            throw new InvalidOperationException("Cannot redeem " + points + " points: balance is "
                     + existing.getPointsBalance() + ".");
         }
 
