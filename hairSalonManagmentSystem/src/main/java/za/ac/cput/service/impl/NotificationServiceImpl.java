@@ -1,5 +1,6 @@
 package za.ac.cput.service.impl;
 
+import org.springframework.stereotype.Service;
 import za.ac.cput.domain.Appointment;
 import za.ac.cput.domain.Notification;
 import za.ac.cput.domain.enums.NotificationChannel;
@@ -12,40 +13,42 @@ import za.ac.cput.service.INotificationService;
 
 import java.util.List;
 
+@Service
 public class NotificationServiceImpl implements INotificationService {
 
     private final NotificationRepository repository;
     private final AppointmentRepository appointmentRepository;
 
-    public NotificationServiceImpl(NotificationRepository repository, AppointmentRepository appointmentRepository) {
+    public NotificationServiceImpl(NotificationRepository repository,
+                                    AppointmentRepository appointmentRepository) {
         this.repository = repository;
         this.appointmentRepository = appointmentRepository;
     }
 
     @Override
-    public Notification create(Notification notification){
+    public Notification create(Notification notification) {
         return repository.save(notification);
     }
 
     @Override
-    public Notification read(String id){
+    public Notification read(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("Notification", id));
     }
 
     @Override
-    public Notification update(Notification notification){
+    public Notification update(Notification notification) {
         read(notification.getNotificationId());
         return repository.save(notification);
     }
 
     @Override
-    public void delete(String id){
+    public void delete(String id) {
         repository.deleteById(id);
     }
 
     @Override
-    public List<Notification> getAll(){
+    public List<Notification> getAll() {
         return repository.findAll();
     }
 
@@ -69,5 +72,4 @@ public class NotificationServiceImpl implements INotificationService {
         }
         return create(notification);
     }
-
 }

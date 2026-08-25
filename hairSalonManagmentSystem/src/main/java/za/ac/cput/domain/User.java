@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
     private String userId;
     private String username;
@@ -81,10 +82,8 @@ public class User {
         public Builder setRole(Role role) {
             this.role = role; return this;
         }
-
         public User build() {
             return new User(this);
         }
     }
-
 }

@@ -60,5 +60,4 @@ public class RoleServiceImpl implements IRoleService {
         return repository.findByName(name)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with name: " + name));
     }
-
 }

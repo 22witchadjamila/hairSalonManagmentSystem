@@ -5,7 +5,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import za.ac.cput.domain.*;
 import za.ac.cput.domain.enums.AppointmentStatus;
+import za.ac.cput.domain.enums.ServiceCategory;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -19,20 +21,22 @@ public class FeedbackFactoryTest {
 
     @BeforeEach
     void setUp() {
-        customer = CustomerFactory.buildCustomer("Jane", "Doe", "j@e.com", "082");
-        Stylist stylist = StylistFactory.buildStylist("Lebo", "M", "l@s.com", "071", "Cuts");
+        customer = CustomerFactory.buildCustomer("Jane", "Doe", "j@e.com", "0821234567");
+        Stylist stylist = StylistFactory.buildStylist("Lebo", "M", "l@s.com", "0711234567", "Cuts");
+        SalonService salonService = SalonServiceFactory.buildService(
+                "Blowout", "Full blowout and style", 45, new BigDecimal("150.00"), ServiceCategory.STYLING);
         completedAppointment = AppointmentFactory.buildAppointment(
-                customer, stylist,
+                customer, stylist, salonService,
                 LocalDate.now().plusDays(1),
-                LocalTime.of(10, 0), 45, null);
+                LocalTime.of(10, 0), null);
         // manually set to COMPLETED using builder copy
         completedAppointment = new Appointment.Builder()
                 .setAppointmentId(completedAppointment.getAppointmentId())
                 .setCustomer(completedAppointment.getCustomer())
                 .setStylist(completedAppointment.getStylist())
+                .setSalonService(completedAppointment.getSalonService())
                 .setAppointmentDate(completedAppointment.getAppointmentDate())
-                .setStartTime(completedAppointment.getStartTime())
-                .setEndTime(completedAppointment.getEndTime())
+                .setTimeSlot(completedAppointment.getTimeSlot())
                 .setStatus(AppointmentStatus.COMPLETED)
                 .setCreatedAt(completedAppointment.getCreatedAt())
                 .build();
@@ -53,10 +57,12 @@ public class FeedbackFactoryTest {
     @Test
     @DisplayName("Should return null when appointment is not COMPLETED")
     void shouldReturnNullWhenAppointmentNotCompleted() {
-        Customer c = CustomerFactory.buildCustomer("A", "B", "a@b.com", "081");
-        Stylist s  = StylistFactory.buildStylist("C", "D", "c@d.com", "071", "Cuts");
+        Customer c = CustomerFactory.buildCustomer("A", "B", "a@b.com", "0811234567");
+        Stylist s  = StylistFactory.buildStylist("C", "D", "c@d.com", "0711234567", "Cuts");
+        SalonService salonService = SalonServiceFactory.buildService(
+                "Cut", "Simple cut", 30, new BigDecimal("100.00"), ServiceCategory.HAIRCUT);
         Appointment pending = AppointmentFactory.buildAppointment(
-                c, s, LocalDate.now().plusDays(2), LocalTime.of(10, 0), 30, null);
+                c, s, salonService, LocalDate.now().plusDays(2), LocalTime.of(10, 0), null);
 
         Feedback review = FeedbackFactory.buildFeedback(pending, c, 4, "Great");
         assertNull(review);

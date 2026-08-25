@@ -51,7 +51,7 @@ public class PromotionServiceImpl implements IPromotionService {
 
     @Override
     public Promotion register(String code, String description, DiscountType discountType,
-                              BigDecimal discountValue, LocalDate startDate, LocalDate endDate, int usageLimit) {
+                               BigDecimal discountValue, LocalDate startDate, LocalDate endDate, int usageLimit) {
         Promotion promotion = PromotionFactory.buildPromotion(
                 code, description, discountType, discountValue, startDate, endDate, usageLimit);
         if (promotion == null) {
@@ -88,5 +88,4 @@ public class PromotionServiceImpl implements IPromotionService {
                 .build();
         return repository.save(updated);
     }
-
 }

@@ -25,7 +25,7 @@ class StylistFactoryTest {
         assertNotNull(stylist);
         assertEquals("Lebo", stylist.getFirstName());
         assertEquals("Mokoena", stylist.getLastName());
-        assertEquals("lebo@salon.com", stylist.getEmail());
+        assertEquals("lebo@salon.com", stylist.getEmail().getValue());
         assertEquals("Colouring", stylist.getSpeciality());
         assertTrue(stylist.isActive());
         assertNotNull(stylist.getStylistId());

@@ -1,12 +1,12 @@
 package za.ac.cput.factory;
 
-import za.ac.cput.domain.SalonService;
-/*ServiceFactory.java
- Service Factory  class
+/*SalonServiceFactory.java
+ SalonService Factory  class
  Author: Witcha Francisco (222894822)
  Date: 26/03/2026
 */
 
+import za.ac.cput.domain.SalonService;
 import za.ac.cput.domain.enums.ServiceCategory;
 import za.ac.cput.domain.valueobject.Money;
 import za.ac.cput.util.Helper;
@@ -16,8 +16,8 @@ import java.math.BigDecimal;
 public class SalonServiceFactory {
 
     public static SalonService buildService(String name, String description,
-                                            int durationMinutes, BigDecimal price,
-                                            ServiceCategory category) {
+                                       int durationMinutes, BigDecimal price,
+                                       ServiceCategory category) {
         if (Helper.isNullOrEmpty(name)) return null;
         if (!Helper.isPositiveInteger(durationMinutes)) return null;
         if (!Helper.isValidAmount(price)) return null;
@@ -33,6 +33,4 @@ public class SalonServiceFactory {
                 .setActive(true)
                 .build();
     }
-
 }
-

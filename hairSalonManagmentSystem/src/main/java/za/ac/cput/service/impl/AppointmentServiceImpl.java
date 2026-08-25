@@ -29,9 +29,9 @@ public class AppointmentServiceImpl implements IAppointmentService {
     private final SalonServiceRepository salonServiceRepository;
 
     public AppointmentServiceImpl(AppointmentRepository repository,
-                                  CustomerRepository customerRepository,
-                                  StylistRepository stylistRepository,
-                                  SalonServiceRepository salonServiceRepository) {
+                                   CustomerRepository customerRepository,
+                                   StylistRepository stylistRepository,
+                                   SalonServiceRepository salonServiceRepository) {
         this.repository = repository;
         this.customerRepository = customerRepository;
         this.stylistRepository = stylistRepository;
@@ -44,7 +44,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
     }
 
     @Override
-    public Appointment read(String id){
+    public Appointment read(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("Appointment", id));
     }
@@ -61,13 +61,13 @@ public class AppointmentServiceImpl implements IAppointmentService {
     }
 
     @Override
-    public List<Appointment> getAll(){
+    public List<Appointment> getAll() {
         return repository.findAll();
     }
 
     @Override
     public Appointment bookAppointment(String customerId, String stylistId, String salonServiceId,
-                                       LocalDate date, LocalTime startTime, String notes){
+                                        LocalDate date, LocalTime startTime, String notes) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("Customer", customerId));
         Stylist stylist = stylistRepository.findById(stylistId)
@@ -79,14 +79,15 @@ public class AppointmentServiceImpl implements IAppointmentService {
         boolean overlaps = repository.findByStylist_StylistIdAndAppointmentDate(stylistId, date).stream()
                 .filter(existing -> existing.getStatus() != AppointmentStatus.CANCELLED)
                 .anyMatch(existing -> requestedSlot.overlaps(existing.getTimeSlot()));
-
-        if (overlaps){
+        if (overlaps) {
             throw new InvalidOperationException(
-                    "Stylist is already booked for that time slot on "+ date);
+                    "Stylist is already booked for that time slot on " + date);
         }
-        Appointment appointment = AppointmentFactory.buildAppointment(customer, stylist, salonService, date, startTime, notes);
-        if (appointment == null){
-            throw new InvalidOperationException("Invalid appointment details provided. ");
+
+        Appointment appointment = AppointmentFactory.buildAppointment(
+                customer, stylist, salonService, date, startTime, notes);
+        if (appointment == null) {
+            throw new InvalidOperationException("Invalid appointment details provided.");
         }
         return create(appointment);
     }
@@ -123,6 +124,4 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 .build();
         return repository.save(updated);
     }
-
-
 }

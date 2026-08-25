@@ -25,8 +25,8 @@ public class CustomerFactoryTest {
         assertNotNull(customer);
         assertEquals("Jane", customer.getFirstName());
         assertEquals("Doe", customer.getLastName());
-        assertEquals("jane@email.com", customer.getEmail());
-        assertEquals("0821234567", customer.getPhoneNumber());
+        assertEquals("jane@email.com", customer.getEmail().getValue());
+        assertEquals("0821234567", customer.getPhoneNumber().getValue());
         assertNotNull(customer.getCustomerId());
         assertNotNull(customer.getRegisteredAt());
     }
@@ -36,7 +36,7 @@ public class CustomerFactoryTest {
     void shouldReturnNullWhenFirstNameIsBlank(){
         Customer customer = CustomerFactory.buildCustomer(
                 "", "Doe", "jane@email.com", "082");
-        assertNotNull(customer);
+        assertNull(customer);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class CustomerFactoryTest {
         Customer customer = CustomerFactory.buildCustomer(
                 "Jane", "Doe", "JANE@EMAIL.COM", "082");
         assertNotNull(customer);
-        assertEquals("jane@email.com", customer.getEmail());
+        assertEquals("jane@email.com", customer.getEmail().getValue());
     }
 
     @Test
@@ -83,6 +83,6 @@ public class CustomerFactoryTest {
                 "c@d.com", "002");
         assertNotNull(c1);
         assertNotNull(c2);
-        assertEquals(c1.getCustomerId(), c2.getCustomerId());
+        assertNotEquals(c1.getCustomerId(), c2.getCustomerId());
     }
 }

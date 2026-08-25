@@ -59,5 +59,4 @@ public class StylistServiceImpl implements IStylistService {
     public List<Stylist> findActiveStylists() {
         return repository.findByIsActiveTrue();
     }
-
 }

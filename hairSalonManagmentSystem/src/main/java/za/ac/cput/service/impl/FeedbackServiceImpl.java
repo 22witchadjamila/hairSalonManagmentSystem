@@ -22,45 +22,44 @@ public class FeedbackServiceImpl implements IFeedbackService {
     private final CustomerRepository customerRepository;
 
     public FeedbackServiceImpl(FeedbackRepository repository,
-                               AppointmentRepository appointmentRepository,
-                               CustomerRepository customerRepository) {
+                                AppointmentRepository appointmentRepository,
+                                CustomerRepository customerRepository) {
         this.repository = repository;
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
     }
 
     @Override
-    public Feedback create(Feedback feedback){
+    public Feedback create(Feedback feedback) {
         return repository.save(feedback);
     }
 
     @Override
-    public Feedback read(String id){
+    public Feedback read(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("Feedback", id));
     }
 
     @Override
-    public Feedback update(Feedback feedback){
+    public Feedback update(Feedback feedback) {
         read(feedback.getReviewId());
         return repository.save(feedback);
     }
 
     @Override
-    public void delete(String id){
+    public void delete(String id) {
         repository.deleteById(id);
     }
 
     @Override
-    public List<Feedback> getAll(){
+    public List<Feedback> getAll() {
         return repository.findAll();
     }
 
     @Override
-    public Feedback submitFeedback(String appointmentId, String customerId, int rating, String comment){
+    public Feedback submitFeedback(String appointmentId, String customerId, int rating, String comment) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("Appointment", appointmentId));
-
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("Customer", customerId));
 
