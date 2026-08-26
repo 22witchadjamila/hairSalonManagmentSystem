@@ -1,4 +1,8 @@
-
+/* Payment.java
+   Payment model class
+   Author: Reece Josephs [218152701]
+   Date: [23 March 2025]
+*/
 
 package za.ac.cput.domain;
 
@@ -49,8 +53,8 @@ public class Payment {
 
     public Payment(Builder builder){
         this.paymentId      = builder.paymentId;
-        this.amount        = builder.amount;
-        this.discount        = builder.discount;
+        this.amount         = builder.amount;
+        this.discount       = builder.discount;
         this.finalAmount    = builder.finalAmount;
         this.method         = builder.method;
         this.status         = builder.status;
@@ -64,11 +68,17 @@ public class Payment {
         return paymentId;
     }
 
-    public Money getAmount() {return amount;}
+    public Money getAmount() {
+        return amount;
+    }
 
-    public Money getDiscount() {return discount;}
+    public Money getDiscount() {
+        return discount;
+    }
 
-    public Money getFinalAmount() {return finalAmount;}
+    public Money getFinalAmount() {
+        return finalAmount;
+    }
 
     public LocalDateTime getPaidAt() {
         return paidAt;
@@ -113,7 +123,7 @@ public class Payment {
             return this;
         }
 
-            public Builder setFinalAmount(Money finalAmount) {
+        public Builder setFinalAmount(Money finalAmount) {
             this.finalAmount = finalAmount;
             return this;
         }

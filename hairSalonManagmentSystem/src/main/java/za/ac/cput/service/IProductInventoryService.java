@@ -6,13 +6,12 @@ import za.ac.cput.domain.SalonService;
 import java.math.BigDecimal;
 import java.util.List;
 
-public interface IProductInventoryService extends IService<ProductInventory, String>{
+public interface IProductInventoryService extends IService<ProductInventory, String> {
     ProductInventory register(String name, String brand, String category, int stockQuantity,
-                              int reorderLevel, BigDecimal costPrice,
-                              BigDecimal sellingPrice, SalonService salonService);
+                               int reorderLevel, BigDecimal costPrice, BigDecimal sellingPrice,
+                               SalonService salonService);
 
-    /** Adjusts stock by delta (positive to restock to consume); rejects if it
-     * would go negative. */
+    /** Adjusts stock by delta (positive to restock, negative to consume); rejects if it would go negative. */
     ProductInventory adjustStock(String productId, int delta);
 
     /** Products at or below their reorder level. */

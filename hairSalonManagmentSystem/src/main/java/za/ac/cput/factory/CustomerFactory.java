@@ -14,15 +14,14 @@ import za.ac.cput.util.Helper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-
 public class CustomerFactory {
 
     public static Customer buildCustomer(String firstName, String lastName,
                                          String email, String phoneNumber) {
-        if(Helper.isNullOrEmpty(firstName)) return null;
-        if(Helper.isNullOrEmpty(lastName)) return null;
-        if(!Helper.isValidEmail(email)) return null;
-        if(Helper.isNullOrEmpty(phoneNumber)) return null;
+        if (Helper.isNullOrEmpty(firstName)) return null;
+        if (Helper.isNullOrEmpty(lastName)) return null;
+        if (!Helper.isValidEmail(email)) return null;
+        if (Helper.isNullOrEmpty(phoneNumber)) return null;
 
         return new Customer.Builder()
                 .setCustomerId(Helper.generateId())

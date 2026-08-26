@@ -14,17 +14,14 @@ import java.time.LocalTime;
 
 public class AppointmentFactory {
 
-    /** Duration is derived from the chosen SalonService, so an appointment's
-     * length can never drift from service it's booking. */
-    public static Appointment buildAppointment(Customer customer, Stylist stylist,
-                                               SalonService salonService, LocalDate date,
-                                               LocalTime startTime, String notes) {
+    /** Duration is derived from the chosen SalonService, so an appointment's length can never drift from the service it's booking. */
+    public static Appointment buildAppointment(Customer customer, Stylist stylist, SalonService salonService,
+                                               LocalDate date, LocalTime startTime, String notes) {
         if(customer == null || stylist == null || salonService == null) return null;
         if(date == null || startTime == null) return null;
         if(date.isBefore(LocalDate.now())) return null;
 
-        TimeSlot timeslot = TimeSlot.of(startTime,
-                startTime.plusMinutes(salonService.getDurationMinutes()));
+        TimeSlot timeSlot = TimeSlot.of(startTime, startTime.plusMinutes(salonService.getDurationMinutes()));
 
         return new Appointment.Builder()
                 .setAppointmentId(Helper.generateId())
@@ -32,11 +29,10 @@ public class AppointmentFactory {
                 .setStylist(stylist)
                 .setSalonService(salonService)
                 .setAppointmentDate(date)
-                .setTimeSlot(timeslot)
+                .setTimeSlot(timeSlot)
                 .setStatus(AppointmentStatus.PENDING)
                 .setNotes(notes)
                 .setCreatedAt(LocalDateTime.now())
                 .build();
     }
 }
-

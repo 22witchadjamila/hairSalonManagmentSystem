@@ -1,15 +1,18 @@
 package za.ac.cput.domain.valueobject;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.Embeddable;
+
 import java.time.LocalTime;
 import java.util.Objects;
 
+/** A start/end time pair. Cannot exist with endTime at or before startTime. */
+@Embeddable
 public class TimeSlot {
 
     private LocalTime startTime;
     private LocalTime endTime;
 
-    protected TimeSlot(){}
+    protected TimeSlot() {}
 
     private TimeSlot(LocalTime startTime, LocalTime endTime) {
         this.startTime = startTime;
@@ -19,14 +22,13 @@ public class TimeSlot {
     public static TimeSlot of(LocalTime startTime, LocalTime endTime) {
         if (startTime == null || endTime == null || !endTime.isAfter(startTime)) {
             throw new IllegalArgumentException(
-                    "Invalid time slot: endTime must be after startTime (" + startTime + " - "+
-                            endTime + ")");
+                    "Invalid time slot: endTime must be after startTime (" + startTime + " - " + endTime + ")");
         }
         return new TimeSlot(startTime, endTime);
     }
 
-    /** True if this slot and other slot share any time in common*/
-    public boolean overlaps(TimeSlot other){
+    /** True if this slot and the other slot share any time in common. */
+    public boolean overlaps(TimeSlot other) {
         return this.startTime.isBefore(other.endTime) && this.endTime.isAfter(other.startTime);
     }
 
@@ -34,14 +36,14 @@ public class TimeSlot {
         return startTime;
     }
 
-    public LocalTime getEndTime(){
+    public LocalTime getEndTime() {
         return endTime;
     }
 
     @Override
-    public boolean equals(Object o){
-        if(this == o) return true;
-        if(!(o instanceof TimeSlot timeSlot)) return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TimeSlot timeSlot)) return false;
         return Objects.equals(startTime, timeSlot.startTime) && Objects.equals(endTime, timeSlot.endTime);
     }
 
@@ -52,6 +54,6 @@ public class TimeSlot {
 
     @Override
     public String toString() {
-        return startTime + " - " + endTime;
+        return startTime + "-" + endTime;
     }
 }

@@ -26,12 +26,14 @@ class PaymentFactoryTest {
 
     @BeforeEach
     void setUp() {
-        Customer customer = CustomerFactory.buildCustomer("Jane", "Doe", "j@e.com", "082");
-        Stylist stylist   = StylistFactory.buildStylist("Lebo", "M", "l@s.com", "071", "Cuts");
+        Customer customer = CustomerFactory.buildCustomer("Jane", "Doe", "j@e.com", "0821234567");
+        Stylist stylist   = StylistFactory.buildStylist("Lebo", "M", "l@s.com", "0711234567", "Cuts");
+        SalonService salonService = SalonServiceFactory.buildService(
+                "Blowout", "Full blowout and style", 45, new BigDecimal("150.00"), ServiceCategory.STYLING);
         appointment = AppointmentFactory.buildAppointment(
-                customer, stylist,
+                customer, stylist, salonService,
                 LocalDate.now().plusDays(1),
-                LocalTime.of(9, 0), 45, null);
+                LocalTime.of(9, 0), null);
     }
 
     @Test
@@ -41,7 +43,7 @@ class PaymentFactoryTest {
                 appointment, new BigDecimal("150.00"), PaymentMethod.CASH);
         assertNotNull(payment);
         assertEquals(PaymentStatus.PENDING, payment.getStatus());
-        assertEquals(0, BigDecimal.ZERO.compareTo(payment.getDiscount()));
+        assertEquals(0, BigDecimal.ZERO.compareTo(payment.getDiscount().getValue()));
         assertNotNull(payment.getPaymentId());
     }
 
@@ -55,9 +57,9 @@ class PaymentFactoryTest {
 
         Payment payment = PaymentFactory.buildPaymentWithPromotion(
                 appointment, new BigDecimal("200.00"),
-                new BigDecimal("50.00"), PaymentMethod.CARD, promo);
+                PaymentMethod.CARD, promo);
         assertNotNull(payment);
-        assertEquals(0, new BigDecimal("150.00").compareTo(payment.getFinalAmount()));
+        assertEquals(0, new BigDecimal("150.00").compareTo(payment.getFinalAmount().getValue()));
     }
 
     @Test

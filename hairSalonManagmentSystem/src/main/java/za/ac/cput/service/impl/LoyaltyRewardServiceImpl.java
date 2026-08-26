@@ -22,29 +22,34 @@ public class LoyaltyRewardServiceImpl implements ILoyaltyRewardService {
     private final CustomerRepository customerRepository;
 
     public LoyaltyRewardServiceImpl(LoyaltyRewardRepository repository,
-                                    CustomerRepository customerRepository) {
+                                     CustomerRepository customerRepository) {
         this.repository = repository;
         this.customerRepository = customerRepository;
     }
 
-    public LoyaltyReward create(LoyaltyReward loyaltyReward){
+    @Override
+    public LoyaltyReward create(LoyaltyReward loyaltyReward) {
         return repository.save(loyaltyReward);
     }
 
-    public LoyaltyReward read(String id){
+    @Override
+    public LoyaltyReward read(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.forEntity("LoyaltyReward", id));
     }
 
-    public LoyaltyReward update(LoyaltyReward loyaltyReward){
+    @Override
+    public LoyaltyReward update(LoyaltyReward loyaltyReward) {
         read(loyaltyReward.getLoyaltyId());
         return repository.save(loyaltyReward);
     }
 
-    public void delete(String id){
+    @Override
+    public void delete(String id) {
         repository.deleteById(id);
     }
 
+    @Override
     public List<LoyaltyReward> getAll() {
         return repository.findAll();
     }
@@ -85,7 +90,7 @@ public class LoyaltyRewardServiceImpl implements ILoyaltyRewardService {
     public LoyaltyReward redeemPoints(String customerId, int points) {
         LoyaltyReward existing = getOrCreate(customerId);
         if (points <= 0 || points > existing.getPointsBalance()) {
-            throw new InvalidOperationException("Cannot redeem " + points + " points: balance is "
+            throw new InvalidOperationException("Cannot redeem " + points + " points; balance is "
                     + existing.getPointsBalance() + ".");
         }
 
@@ -100,5 +105,4 @@ public class LoyaltyRewardServiceImpl implements ILoyaltyRewardService {
                 .build();
         return repository.save(updated);
     }
-
 }

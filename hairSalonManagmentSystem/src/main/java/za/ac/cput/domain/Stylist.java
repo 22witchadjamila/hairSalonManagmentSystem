@@ -55,11 +55,13 @@ public class Stylist {
         return lastName;
     }
 
-    public Email getEmail() {return email;}
+    public Email getEmail() {
+        return email;
+    }
 
-    public PhoneNumber getPhoneNumber() {return phoneNumber;}
-
-    public String getSpecialty() {return specialty;}
+    public PhoneNumber getPhoneNumber() {
+        return phoneNumber;
+    }
 
     public String getSpeciality() {
         return specialty;
@@ -103,10 +105,6 @@ public class Stylist {
             return this;
         }
 
-        public Builder setSpecialty(String specialty) {
-            this.specialty = specialty;
-            return this;
-        }
 
         public Builder setSpeciality(String speciality) {
             this.specialty = speciality;

@@ -35,9 +35,8 @@ public class Appointment {
     private Stylist stylist;
 
     @ManyToOne
-    @JoinColumn(name = "stylist_id")
+    @JoinColumn(name = "service_id")
     private SalonService salonService;
-
 
     protected Appointment() {}
 
@@ -61,6 +60,17 @@ public class Appointment {
         return appointmentDate;
     }
 
+    public TimeSlot getTimeSlot() {
+        return timeSlot;
+    }
+
+    public LocalTime getStartTime() {
+        return timeSlot.getStartTime();
+    }
+
+    public LocalTime getEndTime() {
+        return timeSlot.getEndTime();
+    }
 
     public String getNotes() {
         return notes;
@@ -78,20 +88,12 @@ public class Appointment {
         return stylist;
     }
 
+    public SalonService getSalonService() {
+        return salonService;
+    }
+
     public AppointmentStatus getStatus() {
         return status;
-    }
-
-    public TimeSlot getTimeSlot() {return timeSlot;}
-
-    public SalonService getSalonService() {return salonService;}
-
-    public LocalTime getStartTime() {
-        return timeSlot.getStartTime();
-    }
-
-    public LocalTime getEndTime() {
-        return timeSlot.getEndTime();
     }
 
     public static class Builder{

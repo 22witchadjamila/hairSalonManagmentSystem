@@ -42,12 +42,10 @@ public class PaymentFactory {
                                                     PaymentMethod method,
                                                     Promotion promotion){
         if (appointment == null || method == null) return null;
-        if(!Helper.isValidAmount(amount)) return null;
+        if (!Helper.isValidAmount(amount)) return null;
 
         BigDecimal discount = promotion == null ? BigDecimal.ZERO
-                : Helper.calculateDiscount(amount, promotion.getDiscountType(),
-                promotion.getDiscountValue());
-
+                : Helper.calculateDiscount(amount, promotion.getDiscountType(), promotion.getDiscountValue());
         BigDecimal finalAmount = Helper.calculateFinalAmount(amount, discount);
 
         return new Payment.Builder()

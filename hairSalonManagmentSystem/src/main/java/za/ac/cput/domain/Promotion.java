@@ -21,7 +21,7 @@ public class Promotion {
 
     private BigDecimal discountValue;
 
-    @Enumerated
+    @Embedded
     private DateRange dateRange;
 
     private int usageLimit;
@@ -35,7 +35,7 @@ public class Promotion {
         this.description   = builder.description;
         this.discountType  = builder.discountType;
         this.discountValue = builder.discountValue;
-        this.dateRange = builder.dateRange;
+        this.dateRange      = builder.dateRange;
         this.usageLimit    = builder.usageLimit;
         this.usageCount    = builder.usageCount;
     }
@@ -45,7 +45,9 @@ public class Promotion {
     public String getDescription()        { return description; }
     public DiscountType getDiscountType() { return discountType; }
     public BigDecimal getDiscountValue()  { return discountValue; }
-    public DateRange getDateRange()       {return dateRange;}
+    public DateRange getDateRange()       { return dateRange; }
+    public LocalDate getStartDate()       { return dateRange.getStartDate(); }
+    public LocalDate getEndDate()         { return dateRange.getEndDate(); }
     public int getUsageLimit()            { return usageLimit; }
     public int getUsageCount()            { return usageCount; }
 
@@ -58,7 +60,6 @@ public class Promotion {
         private DateRange dateRange;
         private int usageLimit;
         private int usageCount;
-
 
         public Builder setPromotionId(String promotionId) {
             this.promotionId = promotionId; return this;
@@ -75,12 +76,9 @@ public class Promotion {
         public Builder setDiscountValue(BigDecimal discountValue) {
             this.discountValue = discountValue; return this;
         }
-
         public Builder setDateRange(DateRange dateRange) {
-            this.dateRange = dateRange;
-            return this;
+            this.dateRange = dateRange; return this;
         }
-
         public Builder setUsageLimit(int usageLimit) {
             this.usageLimit = usageLimit; return this;
         }
@@ -88,8 +86,6 @@ public class Promotion {
             this.usageCount = usageCount; return this;
         }
 
-        public Promotion build() {
-            return new Promotion(this);
-        }
+        public Promotion build() { return new Promotion(this); }
     }
 }

@@ -6,8 +6,7 @@ import java.time.LocalDate;
 
 public interface ICustomerService extends IService<Customer, String> {
     Customer register(String firstName, String lastName, String email, String phoneNumber);
-    Customer registerWithDetails(String firstname, String lastName, String email,
-                                 String phoneNumber, LocalDate dateOfBirth);
+    Customer registerWithDetails(String firstName, String lastName, String email,
+                                  String phoneNumber, LocalDate dateOfBirth);
     Customer findByEmail(String email);
-
 }

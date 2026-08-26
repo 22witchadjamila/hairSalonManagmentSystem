@@ -1,7 +1,7 @@
 package za.ac.cput.factory;
 
-/*ServiceFactoryTest
- Service Factory test class
+/*SalonServiceFactoryTest
+ SalonService Factory test class
  Author: Witcha Francisco (222894822)
  Date: 26/03/2026
 */
@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("ServiceFactory Tests")
+@DisplayName("SalonServiceFactory Tests")
 class SalonServiceFactoryTest {
 
     @Test
@@ -27,7 +27,7 @@ class SalonServiceFactoryTest {
         assertNotNull(service);
         assertEquals("Blowout", service.getName());
         assertEquals(60, service.getDurationMinutes());
-        assertEquals(0, new BigDecimal("200.00").compareTo(service.getPrice()));
+        assertEquals(0, new BigDecimal("200.00").compareTo(service.getPrice().getValue()));
         assertEquals(ServiceCategory.STYLING, service.getCategory());
         assertTrue(service.isActive());
     }
