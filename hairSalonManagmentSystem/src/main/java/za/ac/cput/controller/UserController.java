@@ -9,6 +9,8 @@ import za.ac.cput.service.IRoleService;
 import za.ac.cput.service.IUserService;
 import za.ac.cput.domain.User;
 
+import java.util.List;
+
 
 public class UserController {
     private final IUserService service;
@@ -25,5 +27,24 @@ public class UserController {
         Role role = request.roleId() == null ? null : roleService.read(request.roleId());
         return service.register(request.username(), request.email(),
                 request.firstName(), request.lastName(), role);
+    }
+    @GetMapping("/{id}")
+    public User read(@PathVariable String id) {
+        return service.read(id);
+    }
+
+    @GetMapping
+    public List<User> getAll() {
+        return service.getAll();
+    }
+
+    @GetMapping("/username/{username}")
+    public User findByUsername(@PathVariable String username) {
+        return service.findByUsername(username);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) {
+        service.delete(id);
     }
 }
