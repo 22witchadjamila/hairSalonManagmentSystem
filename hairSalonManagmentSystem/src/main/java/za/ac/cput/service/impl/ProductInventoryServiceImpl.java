@@ -50,8 +50,8 @@ public class ProductInventoryServiceImpl implements IProductInventoryService {
 
     @Override
     public ProductInventory register(String name, String brand, String category, int stockQuantity,
-                                     int reorderLevel, BigDecimal costPrice, BigDecimal sellingPrice,
-                                     SalonService salonService) {
+                                      int reorderLevel, BigDecimal costPrice, BigDecimal sellingPrice,
+                                      SalonService salonService) {
         ProductInventory product = ProductInventoryFactory.buildProduct(
                 name, brand, category, stockQuantity, reorderLevel, costPrice, sellingPrice, salonService);
         if (product == null) {
@@ -88,5 +88,4 @@ public class ProductInventoryServiceImpl implements IProductInventoryService {
                 .filter(product -> product.getStockQuantity() <= product.getReorderLevel())
                 .toList();
     }
-
 }

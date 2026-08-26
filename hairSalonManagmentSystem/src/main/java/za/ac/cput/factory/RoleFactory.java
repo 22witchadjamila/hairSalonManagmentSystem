@@ -5,8 +5,8 @@ import za.ac.cput.util.Helper;
 
 public class RoleFactory {
 
-    public static Role buildRole(String name, String description){
-        if(Helper.isNullOrEmpty(name)) return null;
+    public static Role buildRole(String name, String description) {
+        if (Helper.isNullOrEmpty(name)) return null;
 
         return new Role.Builder()
                 .setRoleId(Helper.generateId())

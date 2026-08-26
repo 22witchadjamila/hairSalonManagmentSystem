@@ -18,8 +18,8 @@ public class PhoneNumber {
         this.value = value;
     }
 
-    public static PhoneNumber of(String raw){
-        if(Helper.isNullOrEmpty(raw)){
+    public static PhoneNumber of(String raw) {
+        if (Helper.isNullOrEmpty(raw)) {
             throw new IllegalArgumentException("Phone number cannot be blank.");
         }
         return new PhoneNumber(raw.trim());
@@ -31,15 +31,15 @@ public class PhoneNumber {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(this == o) return true;
-        if(!(o instanceof PhoneNumber that)) return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PhoneNumber that)) return false;
         return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hashCode(value);
     }
 
     @Override

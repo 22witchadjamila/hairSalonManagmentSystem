@@ -61,5 +61,4 @@ public class UserServiceImpl implements IUserService {
         return repository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
     }
-
 }

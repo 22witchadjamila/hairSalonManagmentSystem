@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
 public class UserFactory {
 
     public static User buildUser(String username, String email,
-                                 String firstName, String lastName, Role role){
-        if(Helper.isNullOrEmpty(username)) return null;
-        if(!Helper.isValidEmail(email)) return null;
-        if(Helper.isNullOrEmpty(firstName)) return null;
-        if(Helper.isNullOrEmpty(lastName)) return null;
+                                 String firstName, String lastName, Role role) {
+        if (Helper.isNullOrEmpty(username)) return null;
+        if (!Helper.isValidEmail(email)) return null;
+        if (Helper.isNullOrEmpty(firstName)) return null;
+        if (Helper.isNullOrEmpty(lastName)) return null;
 
         return new User.Builder()
                 .setUserId(Helper.generateId())

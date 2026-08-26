@@ -50,7 +50,7 @@ public class SalonServiceServiceImpl implements ISalonServiceService {
 
     @Override
     public SalonService register(String name, String description, int durationMinutes,
-                                 BigDecimal price, ServiceCategory category) {
+                                  BigDecimal price, ServiceCategory category) {
         SalonService salonService = SalonServiceFactory.buildService(
                 name, description, durationMinutes, price, category);
         if (salonService == null) {
@@ -68,5 +68,4 @@ public class SalonServiceServiceImpl implements ISalonServiceService {
     public List<SalonService> findActiveServices() {
         return repository.findByIsActiveTrue();
     }
-
 }

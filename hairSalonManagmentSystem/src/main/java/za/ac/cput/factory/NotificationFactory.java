@@ -9,7 +9,6 @@ import za.ac.cput.util.Helper;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 
 public class NotificationFactory {
 
@@ -39,11 +38,11 @@ public class NotificationFactory {
 
     public static Notification buildPromotionNotification(String message,
                                                           NotificationChannel channel){
-        if (message == null || message.isBlank()) return null;
+        if (Helper.isNullOrEmpty(message)) return null;
         if (channel == null) return null;
 
         return new Notification.Builder()
-                .setNotificationId(UUID.randomUUID().toString())
+                .setNotificationId(Helper.generateId())
                 .setMessage(message)
                 .setType(NotificationType.PROMOTION)
                 .setChannel(channel)

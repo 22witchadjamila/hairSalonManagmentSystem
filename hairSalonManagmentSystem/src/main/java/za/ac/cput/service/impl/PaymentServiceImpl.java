@@ -1,5 +1,6 @@
 package za.ac.cput.service.impl;
 
+import org.springframework.stereotype.Service;
 import za.ac.cput.domain.Appointment;
 import za.ac.cput.domain.Payment;
 import za.ac.cput.domain.Promotion;
@@ -16,6 +17,7 @@ import za.ac.cput.util.Helper;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Service
 public class PaymentServiceImpl implements IPaymentService {
 
     private final PaymentRepository repository;
@@ -23,8 +25,8 @@ public class PaymentServiceImpl implements IPaymentService {
     private final IPromotionService promotionService;
 
     public PaymentServiceImpl(PaymentRepository repository,
-                              AppointmentRepository appointmentRepository,
-                              IPromotionService promotionService) {
+                               AppointmentRepository appointmentRepository,
+                               IPromotionService promotionService) {
         this.repository = repository;
         this.appointmentRepository = appointmentRepository;
         this.promotionService = promotionService;
@@ -83,5 +85,4 @@ public class PaymentServiceImpl implements IPaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No payment found for appointment: " + appointmentId));
     }
-
 }

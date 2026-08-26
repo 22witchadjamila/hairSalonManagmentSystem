@@ -1,6 +1,5 @@
 /* Customer.java
-- Domain model class representing a Customer entity with attributes and
-Builder pattern for object creation.
+- Domain model class representing a Customer entity with attributes and Builder pattern for object creation.
  Author: Marc Kabala
  Date: 20 March 2026
  */
@@ -23,11 +22,6 @@ public class Customer {
     private String firstName;
     private String lastName;
 
-    /**
-     *The @AttributeOverride annotation renames a database column from an embedded object. In your code,
-     * it changes the column name for the value field inside the Email class to email in the main table.
-     * This stops column name clashes when you embed the same object more than once.
-     * */
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "email"))
     private Email email;
@@ -45,6 +39,8 @@ public class Customer {
         this.customerId = builder.customerId;
         this.firstName = builder.firstName;
         this.lastName = builder.lastName;
+        this.email = builder.email;
+        this.phoneNumber = builder.phoneNumber;
         this.dateOfBirth = builder.dateOfBirth;
         this.registeredAt = builder.registeredAt;
     }
@@ -58,14 +54,18 @@ public class Customer {
     public String getLastName() {
         return lastName;
     }
+    public Email getEmail() {
+        return email;
+    }
+    public PhoneNumber getPhoneNumber() {
+        return phoneNumber;
+    }
     public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
     public LocalDateTime getRegisteredAt() {
         return registeredAt;
     }
-    public Email getEmail() {return email;}
-    public PhoneNumber getPhoneNumber() {return phoneNumber;}
 
     public static class Builder {
         private String customerId;
