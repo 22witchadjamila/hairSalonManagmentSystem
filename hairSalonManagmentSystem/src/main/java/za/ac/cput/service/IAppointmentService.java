@@ -9,6 +9,7 @@ import java.util.List;
 public interface IAppointmentService extends IService<Appointment, String> {
     Appointment bookAppointment(String customerId, String stylistId, String salonServiceId,
                                  LocalDate date, LocalTime startTime, String notes);
+    Appointment confirmAppointment(String appointmentId);
     Appointment cancelAppointment(String appointmentId);
     Appointment completeAppointment(String appointmentId);
     List<Appointment> findByCustomer(String customerId);
