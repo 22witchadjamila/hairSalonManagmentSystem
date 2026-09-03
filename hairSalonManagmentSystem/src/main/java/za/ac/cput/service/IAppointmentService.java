@@ -13,4 +13,5 @@ public interface IAppointmentService extends IService<Appointment, String> {
     Appointment cancelAppointment(String appointmentId);
     Appointment completeAppointment(String appointmentId);
     List<Appointment> findByCustomer(String customerId);
+    List<Appointment> findByStylist(String stylistId);
 }

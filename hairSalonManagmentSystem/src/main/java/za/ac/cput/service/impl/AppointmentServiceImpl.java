@@ -117,6 +117,10 @@ public class AppointmentServiceImpl implements IAppointmentService {
     public List<Appointment> findByCustomer(String customerId) {
         return repository.findByCustomer_CustomerId(customerId);
     }
+    @Override
+    public List<Appointment> findByStylist(String stylistId) {
+        return repository.findByStylist_StylistId(stylistId);
+    }
 
     // Appointment has no setStatus (the domain model is immutable-by-design via Builder),
     // so status changes are done by rebuilding the entity and saving it back.
@@ -135,4 +139,5 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 .build();
         return repository.save(updated);
     }
+
 }

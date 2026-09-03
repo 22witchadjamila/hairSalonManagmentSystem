@@ -41,6 +41,10 @@ public class AppointmentController {
     public List<Appointment> findByCustomer(@PathVariable String customerId) {
         return service.findByCustomer(customerId);
     }
+    @GetMapping("/stylist/{stylistId}")
+    public List<Appointment> findByStylist(@PathVariable String stylistId) {
+        return service.findByStylist(stylistId);
+    }
 
     @PostMapping("/{id}/confirm")
     public Appointment confirm(@PathVariable String id) {
