@@ -1,10 +1,13 @@
 package za.ac.cput.controller;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.ProductInventory;
 import za.ac.cput.service.IProductInventoryService;
 import za.ac.cput.service.ISalonServiceService;
+import za.ac.cput.domain.valueobject.Money;
 import java.math.BigDecimal;
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/products")
@@ -57,5 +60,24 @@ public class ProductInventoryController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);
+    }
+
+    @PutMapping("/{id}")
+    public ProductInventory update(@PathVariable String id, @Valid @RequestBody ProductRequest request) {
+        ProductInventory existing = service.read(id);
+        var salonService = request.salonServiceId() == null ? null
+                : salonServiceService.read(request.salonServiceId());
+        ProductInventory updated = new ProductInventory.Builder()
+                .setProductId(id)
+                .setName(request.name())
+                .setBrand(request.brand())
+                .setCategory(request.category())
+                .setStockQuantity(existing.getStockQuantity())
+                .setReorderLevel(request.reorderLevel())
+                .setCostPrice(Money.of(request.costPrice()))
+                .setSellingPrice(Money.of(request.sellingPrice()))
+                .setSalonService(salonService)
+                .build();
+        return service.update(updated);
     }
 }
