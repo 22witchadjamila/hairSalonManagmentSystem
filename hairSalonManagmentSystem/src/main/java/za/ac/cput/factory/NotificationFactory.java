@@ -50,4 +50,20 @@ public class NotificationFactory {
                 .setScheduledAt(LocalDateTime.now())
                 .build();
     }
+    public static Notification buildAppointmentConfirmed(Appointment appointment) {
+        if (appointment == null) return null;
+        String message = "Good news! Your " + appointment.getSalonService().getName()
+                + " appointment on " + appointment.getAppointmentDate()
+                + " at " + appointment.getStartTime() + " has been confirmed.";
+        return new Notification.Builder()
+                .setNotificationId(Helper.generateId())
+                .setMessage(message)
+                .setType(NotificationType.APPOINTMENT_CONFIRMED)
+                .setChannel(NotificationChannel.IN_APP)
+                .setStatus(NotificationStatus.SENT)
+                .setScheduledAt(LocalDateTime.now())
+                .setSentAt(LocalDateTime.now())
+                .setAppointment(appointment)
+                .build();
+    }
 }
