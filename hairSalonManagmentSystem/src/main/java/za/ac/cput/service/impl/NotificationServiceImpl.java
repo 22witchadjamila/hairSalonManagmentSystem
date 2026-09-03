@@ -72,4 +72,18 @@ public class NotificationServiceImpl implements INotificationService {
         }
         return create(notification);
     }
-}
+    @Override
+    public Notification notifyAppointmentConfirmed(Appointment appointment) {
+        Notification notification = NotificationFactory.buildAppointmentConfirmed(appointment);
+        if (notification == null) {
+            throw new InvalidOperationException(
+                    "Could not build a confirmation notification for this appointment.");
+        }
+        return create(notification);
+    }
+    @Override
+    public List<Notification> findByCustomer(String customerId) {
+        return repository.findByAppointment_Customer_CustomerIdOrderByScheduledAtDesc(customerId);
+    }
+    }
+
