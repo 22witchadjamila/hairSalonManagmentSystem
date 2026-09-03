@@ -42,6 +42,11 @@ public class AppointmentController {
         return service.findByCustomer(customerId);
     }
 
+    @PostMapping("/{id}/confirm")
+    public Appointment confirm(@PathVariable String id) {
+        return service.confirmAppointment(id);
+    }
+
     @PostMapping("/{id}/cancel")
     public Appointment cancel(@PathVariable String id) {
         return service.cancelAppointment(id);
