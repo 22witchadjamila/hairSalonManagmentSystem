@@ -15,6 +15,7 @@ import za.ac.cput.repository.CustomerRepository;
 import za.ac.cput.repository.SalonServiceRepository;
 import za.ac.cput.repository.StylistRepository;
 import za.ac.cput.service.IAppointmentService;
+import za.ac.cput.service.INotificationService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -27,15 +28,19 @@ public class AppointmentServiceImpl implements IAppointmentService {
     private final CustomerRepository customerRepository;
     private final StylistRepository stylistRepository;
     private final SalonServiceRepository salonServiceRepository;
+    private final INotificationService notificationService;
+
 
     public AppointmentServiceImpl(AppointmentRepository repository,
                                    CustomerRepository customerRepository,
                                    StylistRepository stylistRepository,
-                                   SalonServiceRepository salonServiceRepository) {
+                                   SalonServiceRepository salonServiceRepository,
+                                  INotificationService notificationService) {
         this.repository = repository;
         this.customerRepository = customerRepository;
         this.stylistRepository = stylistRepository;
         this.salonServiceRepository = salonServiceRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -94,6 +99,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
     @Override
     public Appointment confirmAppointment(String appointmentId) {
+        Appointment confirmed = updateStatus(appointmentId, AppointmentStatus.CONFIRMED);
         return updateStatus(appointmentId, AppointmentStatus.CONFIRMED);
     }
 
@@ -110,6 +116,10 @@ public class AppointmentServiceImpl implements IAppointmentService {
     @Override
     public List<Appointment> findByCustomer(String customerId) {
         return repository.findByCustomer_CustomerId(customerId);
+    }
+    @Override
+    public List<Appointment> findByStylist(String stylistId) {
+        return repository.findByStylist_StylistId(stylistId);
     }
 
     // Appointment has no setStatus (the domain model is immutable-by-design via Builder),
@@ -129,4 +139,5 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 .build();
         return repository.save(updated);
     }
+
 }

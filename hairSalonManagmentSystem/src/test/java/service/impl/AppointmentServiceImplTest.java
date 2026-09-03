@@ -24,6 +24,7 @@ import za.ac.cput.repository.AppointmentRepository;
 import za.ac.cput.repository.CustomerRepository;
 import za.ac.cput.repository.SalonServiceRepository;
 import za.ac.cput.repository.StylistRepository;
+import za.ac.cput.service.INotificationService;
 import za.ac.cput.service.impl.AppointmentServiceImpl;
 
 import java.math.BigDecimal;
@@ -53,7 +54,8 @@ class AppointmentServiceImplTest {
     private StylistRepository stylistRepository;
     @Mock
     private SalonServiceRepository salonServiceRepository;
-
+    @Mock
+    private INotificationService notificationService;
     @InjectMocks
     private AppointmentServiceImpl service;
 
@@ -224,6 +226,7 @@ class AppointmentServiceImplTest {
         assertEquals(existingAppointment.getTimeSlot(), result.getTimeSlot());
     }
 
+
     @Test
     @DisplayName("completeAppointment() rebuilds the appointment with COMPLETED status and saves it")
     void completeAppointment_savesWithCompletedStatus() {
@@ -244,5 +247,24 @@ class AppointmentServiceImplTest {
 
         assertEquals(1, result.size());
     }
+    @Test
+    @DisplayName("confirmAppointment() rebuilds the appointment with CONFIRMED status and notifies the customer")
+    void confirmAppointment_savesWithConfirmedStatus_andNotifies() {
+        when(repository.findById(existingAppointment.getAppointmentId()))
+                .thenReturn(Optional.of(existingAppointment));
+        when(repository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        Appointment result = service.confirmAppointment(existingAppointment.getAppointmentId());
+        assertEquals(AppointmentStatus.CONFIRMED, result.getStatus());
+        verify(notificationService).notifyAppointmentConfirmed(result);
+    }
+    @Test
+    @DisplayName("findByStylist() delegates to the repository's derived query")
+    void findByStylist_delegatesToRepository() {
+        when(repository.findByStylist_StylistId(stylist.getStylistId()))
+                .thenReturn(List.of(existingAppointment));
+        List<Appointment> result = service.findByStylist(stylist.getStylistId());
+        assertEquals(1, result.size());
+    }
+
 }
 

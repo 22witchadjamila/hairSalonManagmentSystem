@@ -9,4 +9,5 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<Appointment, String> {
     List<Appointment> findByStylist_StylistIdAndAppointmentDate(String stylistId, LocalDate appointmentDate);
     List<Appointment> findByCustomer_CustomerId(String customerId);
+    List<Appointment> findByStylist_StylistId(String stylistId);
 }
