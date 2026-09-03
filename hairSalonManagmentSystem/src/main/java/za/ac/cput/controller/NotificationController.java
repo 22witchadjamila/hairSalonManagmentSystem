@@ -39,6 +39,11 @@ public class NotificationController {
         return service.getAll();
     }
 
+    @GetMapping("/customer/{customerId}")
+    public List<Notification> findByCustomer(@PathVariable String customerId) {
+        return service.findByCustomer(customerId);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);
