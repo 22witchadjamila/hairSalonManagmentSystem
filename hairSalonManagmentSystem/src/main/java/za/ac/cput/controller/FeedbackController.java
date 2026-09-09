@@ -33,6 +33,11 @@ public class FeedbackController {
         return service.getAll();
     }
 
+    @GetMapping("/customer/{customerId}")
+    public List<Feedback> findByCustomer(@PathVariable String customerId) {
+        return service.findByCustomer(customerId);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);

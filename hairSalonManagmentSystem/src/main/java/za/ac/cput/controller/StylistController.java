@@ -1,6 +1,8 @@
 package za.ac.cput.controller;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.Stylist;
+import za.ac.cput.domain.valueobject.Email;
+import za.ac.cput.domain.valueobject.PhoneNumber;
 import za.ac.cput.service.IStylistService;
 
 import java.util.List;
@@ -42,5 +44,20 @@ public class StylistController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);
+    }
+
+    @PutMapping("/{id}")
+    public Stylist update(@PathVariable String id, @RequestBody StylistRequest request) {
+        Stylist existing = service.read(id);
+        Stylist updated = new Stylist.Builder()
+                .setStylistId(id)
+                .setFirstName(request.firstName())
+                .setLastName(request.lastName())
+                .setEmail(Email.of(request.email()))
+                .setPhoneNumber(PhoneNumber.of(request.phoneNumber()))
+                .setSpeciality(request.speciality())
+                .setActive(existing.isActive())
+                .build();
+        return service.update(updated);
     }
 }
