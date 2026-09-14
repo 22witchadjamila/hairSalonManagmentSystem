@@ -100,14 +100,13 @@ public class AppointmentServiceImpl implements IAppointmentService {
     @Override
     public Appointment confirmAppointment(String appointmentId) {
         Appointment confirmed = updateStatus(appointmentId, AppointmentStatus.CONFIRMED);
-        return updateStatus(appointmentId, AppointmentStatus.CONFIRMED);
+        notificationService.notifyAppointmentConfirmed(confirmed);
+        return confirmed;
     }
-
     @Override
     public Appointment cancelAppointment(String appointmentId) {
         return updateStatus(appointmentId, AppointmentStatus.CANCELLED);
     }
-
     @Override
     public Appointment completeAppointment(String appointmentId) {
         return updateStatus(appointmentId, AppointmentStatus.COMPLETED);
