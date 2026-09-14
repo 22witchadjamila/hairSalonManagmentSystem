@@ -2,6 +2,8 @@ package za.ac.cput.controller;
 
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.Customer;
+import za.ac.cput.domain.valueobject.Email;
+import za.ac.cput.domain.valueobject.PhoneNumber;
 import za.ac.cput.service.ICustomerService;
 import java.time.LocalDate;
 import java.util.List;
@@ -51,5 +53,19 @@ public class CustomerController {
         service.delete(id);
     }
 
+    @PutMapping("/{id}")
+    public Customer update(@PathVariable String id, @RequestBody CustomerRequest request) {
+        Customer existing = service.read(id);
+        Customer updated = new Customer.Builder()
+                .setCustomerId(id)
+                .setFirstName(request.firstName())
+                .setLastName(request.lastName())
+                .setEmail(Email.of(request.email()))
+                .setPhoneNumber(PhoneNumber.of(request.phoneNumber()))
+                .setDateOfBirth(request.dateOfBirth())
+                .setRegisteredAt(existing.getRegisteredAt())
+                .build();
+        return service.update(updated);
+    }
 
 }

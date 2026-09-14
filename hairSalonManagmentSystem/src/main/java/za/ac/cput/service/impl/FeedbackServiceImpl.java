@@ -70,4 +70,9 @@ public class FeedbackServiceImpl implements IFeedbackService {
         }
         return create(feedback);
     }
+
+    @Override
+    public List<Feedback> findByCustomer(String customerId) {
+        return repository.findByCustomer_CustomerId(customerId);
+    }
 }
