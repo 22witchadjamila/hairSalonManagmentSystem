@@ -5,6 +5,7 @@ import za.ac.cput.domain.enums.LoyaltyTier;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,13 @@ public class Helper {
     private static final int SILVER_THRESHOLD = 500;
     private static final int GOLD_THRESHOLD = 2000;
     private static final int PLATINUM_THRESHOLD = 5000;
+
+    // Entity ID generation: 9 uppercase alphanumeric characters, e.g. "K3M8QPSXA".
+    // keep accidental collisions negligible at any realistic salon data volume.
+    private static final String ID_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final int ID_LENGTH = 9;
+    private static final SecureRandom ID_RANDOM = new SecureRandom();
+
 
     private Helper() {}
 
@@ -58,12 +66,17 @@ public class Helper {
 
     /** True if the string looks like a valid SA phone number (local or +27 format). */
     public static boolean isValidPhoneNumber(String phoneNumber) {
-        return !isNullOrEmpty(phoneNumber) && PHONE_PATTERN.matcher(phoneNumber.trim()).matches();
+        return !isNullOrEmpty(phoneNumber) &&
+                PHONE_PATTERN.matcher(phoneNumber.trim()).matches();
     }
 
     /** Generates a new random unique ID, used as the primary key for every entity. */
     public static String generateId() {
-        return UUID.randomUUID().toString();
+        StringBuilder id = new StringBuilder(ID_LENGTH);
+        for (int i = 0; i < ID_LENGTH; i++) {
+            id.append(ID_ALPHABET.charAt(ID_RANDOM.nextInt(ID_ALPHABET.length())));
+        }
+        return id.toString();
     }
 
     /** Generates a unique, human-scannable transaction reference for a Payment, e.g. TXN-1893XXXXXX-AB12. */
