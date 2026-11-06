@@ -310,9 +310,7 @@ The `https` profile serves the app over HTTPS with a self-signed certificate. Se
 mvn test
 ```
 
-**345 tests in 50 classes** (JUnit 5 + Mockito, plus a Flyway migration test that runs the table renames against an H2 database shaped like the old schema). They cover the services, controllers, factories, security rules, password policy, lockout, audit labels, search ranking and the migration.
-
-One test, `CustomerControllerTest.create_withDateOfBirth_callsRegisterWithDetails`, was already failing before the security work (it contradicts another test in the same class) and is still to be fixed.
+**345 tests in 50 classes, all passing** (JUnit 5 + Mockito, plus a Flyway migration test that runs the table renames against an H2 database shaped like the old schema). They cover the services, controllers, factories, security rules, password policy, lockout, audit labels, search ranking and the migration.
 
 ---
 
