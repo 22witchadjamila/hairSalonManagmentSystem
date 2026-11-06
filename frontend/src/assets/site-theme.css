@@ -1,0 +1,93 @@
+/* The public marketing site's own design: fonts, palette and utility classes.
+   Extracted from the project's full stylesheet (src/assets/main.css), which also carries the
+   dashboard template's styles and is not included in this folder. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap')
+layer(base);
+
+@theme {
+  --font-jakarta: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  /* Public marketing palette: two-tone, warm cream and near-black, so the photography carries the colour. */
+  --color-cream: #fffcf5;
+  --color-cream-dim: #f7f2e8;
+  --color-ink: #0b0b0b;
+  --color-ink-soft: #1a1a1a;
+  --color-ink-muted: #6b6560;
+  --color-ink-line: #e8e2d6;
+}
+
+/* ---------------------------------------------------------------------------
+   Public marketing site (PublicLayout and views/public/*).
+   Scoped to .site-public so none of this can leak into the dashboards.
+   --------------------------------------------------------------------------- */
+
+@utility site-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-6 py-4 text-xs font-semibold uppercase tracking-[0.14em] transition-colors duration-200;
+}
+
+@utility site-btn-dark {
+  @apply site-btn bg-ink text-cream hover:bg-ink-soft;
+}
+
+@utility site-btn-light {
+  @apply site-btn bg-cream text-ink hover:bg-white;
+}
+
+@utility site-btn-outline {
+  @apply site-btn border border-ink text-ink hover:bg-ink hover:text-cream;
+}
+
+@utility site-eyebrow {
+  @apply text-xs font-semibold uppercase tracking-[0.18em] text-ink-muted;
+}
+
+/* Section heading: 40px/46px weight 500, matching the reference's restrained display scale. */
+@utility site-h2 {
+  @apply text-[2rem] font-medium leading-[1.15] tracking-[-0.01em] sm:text-[2.5rem];
+}
+
+@utility site-section {
+  @apply px-5 py-20 sm:px-8 md:py-28;
+}
+
+@utility site-container {
+  @apply mx-auto w-full max-w-6xl;
+}
+
+@layer base {
+  .site-public {
+    font-family: var(--font-jakarta);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+  }
+  /* Focus ring that stays visible on both the cream and the near-black sections. */
+  .site-public :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+/* Scroll reveal. Elements start hidden only when JS has marked the document as
+   reveal-capable, so with JS disabled everything renders in its final state. */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-ready [data-reveal],
+  .reveal-ready [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
