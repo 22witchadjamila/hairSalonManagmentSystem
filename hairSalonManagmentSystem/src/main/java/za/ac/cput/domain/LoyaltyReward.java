@@ -6,6 +6,7 @@ import za.ac.cput.domain.enums.LoyaltyTier;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "loyalty_rewards")
 public class LoyaltyReward {
 
     @Id

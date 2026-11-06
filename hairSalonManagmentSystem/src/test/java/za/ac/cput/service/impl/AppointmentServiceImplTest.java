@@ -56,6 +56,8 @@ class AppointmentServiceImplTest {
     private SalonServiceRepository salonServiceRepository;
     @Mock
     private INotificationService notificationService;
+    @Mock
+    private za.ac.cput.repository.PaymentRepository paymentRepository;
     @InjectMocks
     private AppointmentServiceImpl service;
 
@@ -266,5 +268,62 @@ class AppointmentServiceImplTest {
         assertEquals(1, result.size());
     }
 
-}
 
+    // ------------------------------------------------------------------ cancel / confirm rules
+
+    private Appointment withStatus(AppointmentStatus status) {
+        return new Appointment.Builder()
+                .setAppointmentId(existingAppointment.getAppointmentId())
+                .setCustomer(customer).setStylist(stylist).setSalonService(salonService)
+                .setAppointmentDate(existingAppointment.getAppointmentDate())
+                .setTimeSlot(existingAppointment.getTimeSlot())
+                .setStatus(status).build();
+    }
+
+    @Test
+    @DisplayName("cancelAppointment() works for a CONFIRMED appointment too")
+    void cancelAppointment_allowsConfirmed() {
+        Appointment confirmed = withStatus(AppointmentStatus.CONFIRMED);
+        when(repository.findById(confirmed.getAppointmentId())).thenReturn(Optional.of(confirmed));
+        when(repository.save(any(Appointment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertEquals(AppointmentStatus.CANCELLED, service.cancelAppointment(confirmed.getAppointmentId()).getStatus());
+    }
+
+    @Test
+    @DisplayName("cancelAppointment() refuses completed, already-cancelled and no-show appointments")
+    void cancelAppointment_refusesFinishedOnes() {
+        for (AppointmentStatus status : new AppointmentStatus[]{
+                AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW}) {
+            Appointment done = withStatus(status);
+            when(repository.findById(done.getAppointmentId())).thenReturn(Optional.of(done));
+            assertThrows(InvalidOperationException.class, () -> service.cancelAppointment(done.getAppointmentId()), status.name());
+        }
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("cancelAppointment() refuses an appointment that has been paid - refund first")
+    void cancelAppointment_refusesPaid() {
+        Appointment confirmed = withStatus(AppointmentStatus.CONFIRMED);
+        when(repository.findById(confirmed.getAppointmentId())).thenReturn(Optional.of(confirmed));
+        when(paymentRepository.existsByAppointment_AppointmentIdAndStatus(
+                confirmed.getAppointmentId(), za.ac.cput.domain.enums.PaymentStatus.PAID)).thenReturn(true);
+
+        assertThrows(InvalidOperationException.class, () -> service.cancelAppointment(confirmed.getAppointmentId()));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("confirmAppointment() refuses anything that isn't PENDING, and sends no notification")
+    void confirmAppointment_onlyPending() {
+        for (AppointmentStatus status : new AppointmentStatus[]{
+                AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED, AppointmentStatus.COMPLETED}) {
+            Appointment a = withStatus(status);
+            when(repository.findById(a.getAppointmentId())).thenReturn(Optional.of(a));
+            assertThrows(InvalidOperationException.class, () -> service.confirmAppointment(a.getAppointmentId()), status.name());
+        }
+        verify(repository, never()).save(any());
+        verifyNoInteractions(notificationService);
+    }
+}

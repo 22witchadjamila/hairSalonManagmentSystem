@@ -24,13 +24,19 @@ public class Helper {
     private static final Pattern PHONE_PATTERN =
             Pattern.compile("^(\\+27|0)[ -]?[0-9]{2}[ -]?[0-9]{3}[ -]?[0-9]{4}$");
 
-    // 1 loyalty point earned per R10 spent.
-    private static final BigDecimal POINTS_PER_RAND_SPENT = new BigDecimal("10");
+    // 1 loyalty point earned per R10 spent. (Public: GET /api/loyalty-rewards/rules reports these
+    // so the pages never hard-code a second copy.)
+    public static final BigDecimal POINTS_PER_RAND_SPENT = new BigDecimal("10");
+
+    // Spending points: each point takes R0.50 off, and a redemption must be at least 50 points
+    // (R25). Earning R10 per point and spending at R0.50 per point is a 5% return.
+    public static final BigDecimal LOYALTY_RAND_PER_POINT = new BigDecimal("0.50");
+    public static final int LOYALTY_MIN_REDEEM_POINTS = 50;
 
     // Loyalty tier thresholds, in total points ever earned.
-    private static final int SILVER_THRESHOLD = 500;
-    private static final int GOLD_THRESHOLD = 2000;
-    private static final int PLATINUM_THRESHOLD = 5000;
+    public static final int SILVER_THRESHOLD = 500;
+    public static final int GOLD_THRESHOLD = 2000;
+    public static final int PLATINUM_THRESHOLD = 5000;
 
     // Entity ID generation: 9 uppercase alphanumeric characters, e.g. "K3M8QPSXA".
     // keep accidental collisions negligible at any realistic salon data volume.
@@ -118,6 +124,18 @@ public class Helper {
     public static int calculateLoyaltyPointsEarned(BigDecimal amountSpent) {
         if (!isValidAmount(amountSpent)) return 0;
         return amountSpent.divide(POINTS_PER_RAND_SPENT, 0, RoundingMode.DOWN).intValue();
+    }
+
+    /** What a number of loyalty points takes off a bill, in rand. */
+    public static BigDecimal loyaltyValueOf(int points) {
+        return LOYALTY_RAND_PER_POINT.multiply(BigDecimal.valueOf(Math.max(points, 0)))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** The most points that can be spent against an amount without going past it (rounded down). */
+    public static int maxLoyaltyPointsFor(BigDecimal amountDue) {
+        if (amountDue == null || amountDue.signum() <= 0) return 0;
+        return amountDue.divide(LOYALTY_RAND_PER_POINT, 0, RoundingMode.DOWN).intValue();
     }
 
     /** Maps a customer's total lifetime points to their loyalty tier. */

@@ -27,6 +27,12 @@ public class Promotion {
     private int usageLimit;
     private int usageCount;
 
+    /**
+     * Set when an admin ends the promotion before its end date. Nullable so rows that existed
+     * before the column was added read as "not ended" instead of failing to load.
+     */
+    private Boolean ended;
+
     protected Promotion() {}
 
     public Promotion(Builder builder) {
@@ -38,6 +44,7 @@ public class Promotion {
         this.dateRange      = builder.dateRange;
         this.usageLimit    = builder.usageLimit;
         this.usageCount    = builder.usageCount;
+        this.ended         = builder.ended;
     }
 
     public String getPromotionId()        { return promotionId; }
@@ -50,6 +57,7 @@ public class Promotion {
     public LocalDate getEndDate()         { return dateRange.getEndDate(); }
     public int getUsageLimit()            { return usageLimit; }
     public int getUsageCount()            { return usageCount; }
+    public boolean isEnded()              { return Boolean.TRUE.equals(ended); }
 
     public static class Builder {
         private String promotionId;
@@ -60,6 +68,7 @@ public class Promotion {
         private DateRange dateRange;
         private int usageLimit;
         private int usageCount;
+        private Boolean ended = false;
 
         public Builder setPromotionId(String promotionId) {
             this.promotionId = promotionId; return this;
@@ -84,6 +93,10 @@ public class Promotion {
         }
         public Builder setUsageCount(int usageCount) {
             this.usageCount = usageCount; return this;
+        }
+
+        public Builder setEnded(boolean ended) {
+            this.ended = ended; return this;
         }
 
         public Promotion build() { return new Promotion(this); }

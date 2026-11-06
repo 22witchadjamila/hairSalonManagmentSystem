@@ -1,5 +1,6 @@
 package za.ac.cput.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import za.ac.cput.domain.valueobject.Email;
 
@@ -17,7 +18,10 @@ public class User {
      * Chapter 9's `passwd` field. Stored as a BCrypt hash, never plain text - the chapter's
      * MD5 example (9.7.2) is no longer safe: MD5 is fast and unsalted, so a leaked table can
      * be brute-forced offline. BCrypt is deliberately slow and salts every hash.
+     *
+     * @JsonIgnore: the hash must never leave the server. GET /api/users used to return it.
      */
+    @JsonIgnore
     private String password;
 
     @Embedded
@@ -49,6 +53,7 @@ public class User {
 
     public String getUserId()          { return userId; }
     public String getUsername()        { return username; }
+    @JsonIgnore
     public String getPassword()        { return password; }
     public Email getEmail()            { return email; }
     public String getFirstName()       { return firstName; }

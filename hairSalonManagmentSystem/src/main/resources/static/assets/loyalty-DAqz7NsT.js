@@ -1,0 +1,1 @@
+import{L as t}from"./index-BHH9grBJ.js";const s={getOrCreate:r=>t.get(`/loyalty-rewards/customer/${r}`),rules:()=>t.get("/loyalty-rewards/rules"),list:()=>t.get("/loyalty-rewards"),addPoints:(r,a)=>t.post(`/loyalty-rewards/customer/${r}/add-points`,{amountSpent:a})};export{s as l};

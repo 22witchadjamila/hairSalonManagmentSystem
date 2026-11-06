@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
+import za.ac.cput.config.PermissionPolicy;
 import za.ac.cput.config.RoleSeeder;
 import za.ac.cput.domain.Customer;
 import za.ac.cput.domain.Stylist;
@@ -38,10 +39,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
+    private final PermissionPolicy perm;
 
-    public AuthController(AuthService authService, AuthenticationManager authenticationManager) {
+    public AuthController(AuthService authService, AuthenticationManager authenticationManager,
+                          PermissionPolicy perm) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
+        this.perm = perm;
     }
 
     public record RegisterRequest(
@@ -62,7 +66,8 @@ public class AuthController {
     public record SessionUser(String username, String firstName, String lastName,
                               String email, String role, String customerId,
                               String phoneNumber, java.time.LocalDate dateOfBirth,
-                              String stylistId, String speciality) {}
+                              String stylistId, String speciality,
+                              java.util.Set<String> permissions) {}
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -89,7 +94,7 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(describe(authentication.getName()));
+        return ResponseEntity.ok(describe(authentication));
     }
 
     private SessionUser authenticate(String username, String password, HttpServletRequest http) {
@@ -112,14 +117,15 @@ public class AuthController {
         http.getSession(true).setAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
-        return describe(auth.getName());
+        return describe(auth);
     }
 
     /**
      * Previously this assumed every login was a customer and threw for anyone else - which
      * would have crashed the first admin or stylist login. Each role now reports what it has.
      */
-    private SessionUser describe(String username) {
+    private SessionUser describe(Authentication authentication) {
+        String username = authentication.getName();
         User user = authService.userFor(username);
         String role = user.getRole() != null ? user.getRole().getName() : null;
 
@@ -139,6 +145,9 @@ public class AuthController {
                 phone,
                 customer != null ? customer.getDateOfBirth() : null,
                 stylist != null ? stylist.getStylistId() : null,
-                stylist != null ? stylist.getSpeciality() : null);
+                stylist != null ? stylist.getSpeciality() : null,
+                // What the dashboard may show. Only a hint for the UI: every request is still
+                // checked on the server by PermissionPolicy.
+                perm.permissionsOf(authentication));
     }
 }

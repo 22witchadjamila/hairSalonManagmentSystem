@@ -50,6 +50,29 @@ public class NotificationFactory {
                 .setScheduledAt(LocalDateTime.now())
                 .build();
     }
+    /**
+     * Type GENERAL on purpose. The type column is an enum column in MySQL, and the app creates
+     * tables with ddl-auto=update, which never widens an existing enum - a new type value would be
+     * refused by a database that already has the table. The message itself says it is a cancellation.
+     */
+    public static Notification buildAppointmentCancelled(Appointment appointment) {
+        if (appointment == null) return null;
+        String message = "Sorry - your " + appointment.getSalonService().getName()
+                + " appointment on " + appointment.getAppointmentDate()
+                + " at " + appointment.getStartTime() + " has been cancelled by the salon."
+                + " Please book another time.";
+        return new Notification.Builder()
+                .setNotificationId(Helper.generateId())
+                .setMessage(message)
+                .setType(NotificationType.GENERAL)
+                .setChannel(NotificationChannel.IN_APP)
+                .setStatus(NotificationStatus.SENT)
+                .setScheduledAt(LocalDateTime.now())
+                .setSentAt(LocalDateTime.now())
+                .setAppointment(appointment)
+                .build();
+    }
+
     public static Notification buildAppointmentConfirmed(Appointment appointment) {
         if (appointment == null) return null;
         String message = "Good news! Your " + appointment.getSalonService().getName()

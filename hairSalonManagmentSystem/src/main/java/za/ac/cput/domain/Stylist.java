@@ -28,7 +28,9 @@ public class Stylist {
     @AttributeOverride(name = "value", column = @Column(name = "phone_number"))
     private PhoneNumber phoneNumber;
 
-    private String specialty;
+    /** Spelled like its getter, builder and JSON. The DB column keeps its original name. */
+    @Column(name = "specialty")
+    private String speciality;
     private boolean isActive;
 
     public Stylist() {}
@@ -39,7 +41,7 @@ public class Stylist {
         this.lastName = builder.lastName;
         this.email = builder.email;
         this.phoneNumber = builder.phoneNumber;
-        this.specialty = builder.specialty;
+        this.speciality = builder.speciality;
         this.isActive = builder.isActive;
     }
 
@@ -64,7 +66,7 @@ public class Stylist {
     }
 
     public String getSpeciality() {
-        return specialty;
+        return speciality;
     }
 
     public boolean isActive() {
@@ -77,7 +79,7 @@ public class Stylist {
         private String lastName;
         private Email email;
         private PhoneNumber phoneNumber;
-        private String specialty;
+        private String speciality;
         private boolean isActive;
 
         public Builder setStylistId(String stylistId) {
@@ -107,7 +109,7 @@ public class Stylist {
 
 
         public Builder setSpeciality(String speciality) {
-            this.specialty = speciality;
+            this.speciality = speciality;
             return this;
         }
 

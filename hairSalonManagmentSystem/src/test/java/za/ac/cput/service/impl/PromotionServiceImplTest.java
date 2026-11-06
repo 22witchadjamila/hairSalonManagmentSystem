@@ -105,20 +105,27 @@ class PromotionServiceImplTest {
     }
 
     @Test
-    @DisplayName("recordUsage() saves a copy of the promotion with usageCount incremented by one")
-    void recordUsage_incrementsUsageCount() {
+    @DisplayName("recordUsage() counts one use with a single atomic UPDATE, never a read-then-save")
+    void recordUsage_incrementsAtomically() {
         Promotion promo = PromotionFactory.buildPromotion("SAVE10", "desc", DiscountType.PERCENTAGE,
                 new BigDecimal("10"), LocalDate.now(), LocalDate.now().plusDays(10), 100);
-        when(repository.save(any(Promotion.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        ArgumentCaptor<Promotion> captor = ArgumentCaptor.forClass(Promotion.class);
+        when(repository.incrementUsageIfAvailable(promo.getPromotionId())).thenReturn(1);
+        when(repository.findById(promo.getPromotionId())).thenReturn(Optional.of(promo));
 
         service.recordUsage(promo);
 
-        verify(repository).save(captor.capture());
-        assertEquals(promo.getUsageCount() + 1, captor.getValue().getUsageCount());
-        // everything else about the promotion should carry over unchanged
-        assertEquals(promo.getCode(), captor.getValue().getCode());
-        assertEquals(promo.getDiscountValue(), captor.getValue().getDiscountValue());
+        verify(repository).incrementUsageIfAvailable(promo.getPromotionId());
+        verify(repository, never()).save(any(Promotion.class));
+    }
+
+    @Test
+    @DisplayName("recordUsage() refuses once the limit is reached")
+    void recordUsage_throwsWhenLimitReached() {
+        Promotion promo = PromotionFactory.buildPromotion("SAVE10", "desc", DiscountType.PERCENTAGE,
+                new BigDecimal("10"), LocalDate.now(), LocalDate.now().plusDays(10), 1);
+        when(repository.incrementUsageIfAvailable(promo.getPromotionId())).thenReturn(0);
+
+        assertThrows(InvalidOperationException.class, () -> service.recordUsage(promo));
     }
 
     @Test

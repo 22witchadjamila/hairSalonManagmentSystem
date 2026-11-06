@@ -74,18 +74,16 @@ public class PromotionServiceImpl implements IPromotionService {
         return promotion;
     }
 
+    /**
+     * Legacy path (PaymentServiceImpl.processPayment, no longer reachable from the API). It used
+     * to read the count and save count+1, so two payments at once could both take the last use
+     * and a retry counted twice. Now the same single atomic UPDATE as the live payment path.
+     */
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Promotion recordUsage(Promotion promotion) {
-        Promotion updated = new Promotion.Builder()
-                .setPromotionId(promotion.getPromotionId())
-                .setCode(promotion.getCode())
-                .setDescription(promotion.getDescription())
-                .setDiscountType(promotion.getDiscountType())
-                .setDiscountValue(promotion.getDiscountValue())
-                .setDateRange(promotion.getDateRange())
-                .setUsageLimit(promotion.getUsageLimit())
-                .setUsageCount(promotion.getUsageCount() + 1)
-                .build();
-        return repository.save(updated);
+        if (repository.incrementUsageIfAvailable(promotion.getPromotionId()) == 0)
+            throw new InvalidOperationException("Promotion " + promotion.getCode() + " has reached its usage limit.");
+        return read(promotion.getPromotionId());
     }
 }

@@ -8,8 +8,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import za.ac.cput.domain.Role;
 import za.ac.cput.service.IRoleService;
+import za.ac.cput.service.RoleAdminService;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -21,17 +23,20 @@ class RoleControllerTest {
     @Mock
     private IRoleService service;
 
+    @Mock
+    private RoleAdminService roleAdmin;
+
     @InjectMocks
     private RoleController controller;
 
     @Test
-    @DisplayName("create() delegates to service.register()")
-    void create_delegatesToService() {
+    @DisplayName("create() goes through RoleAdminService, passing the chosen permissions")
+    void create_delegatesToRoleAdmin() {
         Role role = mock(Role.class);
-        when(service.register("ADMIN", "Full access")).thenReturn(role);
+        when(roleAdmin.create("RECEPTION", "Front desk", Set.of("APPOINTMENTS:VIEW"))).thenReturn(role);
 
-        RoleController.RoleRequest request = new RoleController.RoleRequest("ADMIN",
-                "Full access");
+        RoleController.RoleRequest request = new RoleController.RoleRequest("RECEPTION",
+                "Front desk", Set.of("APPOINTMENTS:VIEW"));
 
         assertEquals(role, controller.create(request));
     }
@@ -64,11 +69,11 @@ class RoleControllerTest {
     }
 
     @Test
-    @DisplayName("delete() delegates to service.delete()")
-    void delete_delegatesToService() {
+    @DisplayName("delete() goes through RoleAdminService, which protects built-in and in-use roles")
+    void delete_delegatesToRoleAdmin() {
         controller.delete("r1");
 
-        verify(service).delete("r1");
+        verify(roleAdmin).delete("r1");
     }
 }
 

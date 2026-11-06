@@ -2,6 +2,9 @@ package za.ac.cput.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import za.ac.cput.repository.UserRepository;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -49,7 +52,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, PermissionPolicy perm,
+                                                   UserRepository users) throws Exception {
         http
             // CSRF is disabled because the API is called by a same-origin SPA with no cookie-
             // based form posts. See the write-up: this is the one trade-off worth revisiting.
@@ -65,39 +69,64 @@ public class SecurityConfig {
                 session.maximumSessions(1);
             })
 
-            // Section C: <intercept-url>. Order matters - the first match wins, so the
-            // specific public routes are listed before the catch-all.
             // Section C: <intercept-url>. ORDER MATTERS - the first matching rule wins.
-            // Every /api rule must therefore come before the SPA catch-all at the bottom,
-            // otherwise a pattern like /*/{path} swallows /api/roles and opens it to anyone.
+            //
+            // Deny by default: every /api path not explicitly opened below is ADMIN-only, so a
+            // newly added endpoint starts locked rather than open. Rules here are coarse (which
+            // ROLE may call a path); controller @PreAuthorize adds ownership (WHICH customer or
+            // stylist) via AccessRules. Every /api rule must precede the SPA catch-all at the
+            // bottom, or a pattern like /*/{path} would swallow /api/roles.
             .authorizeHttpRequests(auth -> auth
 
-                // --- unprotected API (the chapter's IS_AUTHENTICATED_ANONYMOUSLY) ---
-                // Sign-up and log-in must be reachable by someone who is not yet anyone.
+                // ---------- public (the chapter's IS_AUTHENTICATED_ANONYMOUSLY) ----------
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-
-                // The marketing site reads these to render the price list and the team.
+                // Marketing site: price list, the team, reviews, offers and retail products.
+                // Each returns a public projection - no emails, phone numbers or cost prices.
                 .requestMatchers(HttpMethod.GET,
-                        "/api/services/**", "/api/stylists/**", "/api/feedback").permitAll()
+                        "/api/services", "/api/services/active", "/api/services/{id}",
+                        "/api/services/category/*",
+                        "/api/stylists/active",
+                        "/api/feedback/public",
+                        "/api/promotions/available", "/api/promotions/quote",
+                        "/api/products/shop").permitAll()
 
-                // --- protected API ---
-                // THE REQUIREMENT: you must be a signed-up, signed-in customer to book.
+                // ---------- any signed-in user ----------
+                .requestMatchers("/api/auth/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/loyalty-rewards/rules").authenticated()
+
+                // ---------- customers (ownership enforced in the controllers) ----------
                 .requestMatchers(HttpMethod.POST, "/api/appointments/book").hasRole(RoleSeeder.CUSTOMER)
+                .requestMatchers(HttpMethod.GET, "/api/appointments/customer/*").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.POST, "/api/appointments/*/cancel").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.STYLIST, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.GET, "/api/customers/*").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.PUT, "/api/customers/*").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.GET, "/api/feedback/customer/*").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.POST, "/api/feedback").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.GET, "/api/loyalty-rewards/customer/*").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.GET, "/api/notifications/customer/*").access(perm.orRoles(RoleSeeder.CUSTOMER, RoleSeeder.ADMIN))
 
-                // Account and role administration is admin-only - including creating
-                // stylist logins (AdminController). Must precede the /api/** rule below.
-                .requestMatchers("/api/admin/**", "/api/users/**", "/api/roles/**").hasRole(RoleSeeder.ADMIN)
+                // ---------- stylists (ownership enforced in the controllers) ----------
+                .requestMatchers(HttpMethod.GET, "/api/appointments/stylist/*").access(perm.orRoles(RoleSeeder.STYLIST, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.POST, "/api/appointments/*/confirm", "/api/appointments/*/complete")
+                        .access(perm.orRoles(RoleSeeder.STYLIST, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.GET, "/api/stylists/*").access(perm.orRoles(RoleSeeder.STYLIST, RoleSeeder.ADMIN))
+                .requestMatchers(HttpMethod.PUT, "/api/stylists/*").access(perm.orRoles(RoleSeeder.STYLIST, RoleSeeder.ADMIN))
+                // Custom roles may search too; results are limited to the modules they can view.
+                .requestMatchers(HttpMethod.GET, "/api/search").access((authentication, ctx) ->
+                        new AuthorizationDecision(perm.orRoles(RoleSeeder.STYLIST, RoleSeeder.ADMIN)
+                                .check(authentication, ctx).isGranted()
+                                || !perm.viewableModules(authentication.get()).isEmpty()))
 
-                // Changing the catalogue is staff-only; reading it was permitted above.
-                .requestMatchers(HttpMethod.POST,   "/api/services/**", "/api/stylists/**").hasRole(RoleSeeder.ADMIN)
-                .requestMatchers(HttpMethod.PUT,    "/api/services/**", "/api/stylists/**").hasRole(RoleSeeder.ADMIN)
-                .requestMatchers(HttpMethod.DELETE, "/api/services/**", "/api/stylists/**").hasRole(RoleSeeder.ADMIN)
+                // ---------- either party to an appointment ----------
+                .requestMatchers(HttpMethod.GET, "/api/appointments/*").authenticated()
 
-                // Anything else under /api needs a login. Stated explicitly so that a new
-                // endpoint is closed by default rather than falling through to the SPA rule.
-                .requestMatchers("/api/**").authenticated()
+                // ---------- everything else under /api: staff administration ----------
+                // ADMIN, or a custom role whose permissions cover this module + action (see
+                // PermissionPolicy). Paths outside every module - users, roles, /api/admin and
+                // anything new - stay ADMIN-only.
+                .requestMatchers("/api/**").access(perm.orRoles(RoleSeeder.ADMIN))
 
-                // --- the built Vue app (everything below is NOT under /api) ---
+                // ---------- the built Vue app (everything below is NOT under /api) ----------
                 .requestMatchers(HttpMethod.GET,
                         "/", "/index.html", "/favicon.ico", "/assets/**", "/images/**").permitAll()
                 // Dot-less paths forwarded to index.html by SpaFallbackController. The Vue
@@ -123,6 +152,10 @@ public class SecurityConfig {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
             )
+
+            // Re-check every signed-in request against the database: a deleted, disabled or
+            // re-roled login loses its old session immediately (see SessionFreshnessFilter).
+            .addFilterBefore(new SessionFreshnessFilter(users), AuthorizationFilter.class)
 
             .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable());

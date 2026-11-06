@@ -8,6 +8,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import za.ac.cput.domain.Stylist;
 import za.ac.cput.service.IStylistService;
+import za.ac.cput.service.RetirementService;
+import za.ac.cput.service.AuthService;
+import za.ac.cput.domain.valueobject.Email;
 
 import java.util.List;
 
@@ -20,6 +23,12 @@ class StylistControllerTest {
 
     @Mock
     private IStylistService service;
+
+    @Mock
+    private RetirementService retirementService;
+
+    @Mock
+    private AuthService authService;
 
     @InjectMocks
     private StylistController controller;
@@ -57,20 +66,25 @@ class StylistControllerTest {
     }
 
     @Test
-    @DisplayName("findActive() delegates to service.findActiveStylists()")
-    void findActive_delegatesToService() {
-        List<Stylist> stylists = List.of(mock(Stylist.class));
-        when(service.findActiveStylists()).thenReturn(stylists);
+    @DisplayName("findActive() is public, so it returns names and speciality only - never email or phone")
+    void findActive_returnsPublicProjection() {
+        Stylist thandi = new Stylist.Builder().setStylistId("s1").setFirstName("Thandi").setLastName("M")
+                .setEmail(Email.of("thandi@judithhairsalon.co.za")).setSpeciality("Colour").setActive(true).build();
+        when(service.findActiveStylists()).thenReturn(List.of(thandi));
 
-        assertEquals(stylists, controller.findActive());
+        List<StylistController.PublicStylist> result = controller.findActive();
+
+        assertEquals(List.of(new StylistController.PublicStylist("s1", "Thandi", "M", "Colour")), result);
     }
 
     @Test
-    @DisplayName("delete() delegates to service.delete()")
-    void delete_delegatesToService() {
-        controller.delete("s1");
+    @DisplayName("delete() archives-or-deletes via RetirementService")
+    void delete_usesRetirementStrategy() {
+        RetirementService.Result deleted = new RetirementService.Result(RetirementService.Outcome.DELETED, "deleted");
+        when(retirementService.retireStylist("s1")).thenReturn(deleted);
 
-        verify(service).delete("s1");
+        assertEquals(deleted, controller.delete("s1"));
+        verify(service, never()).delete(any());
     }
 }
 

@@ -44,6 +44,19 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Versioned schema migrations (src/main/java/db/migration, src/main/resources/db/migration).
+             Runs before Hibernate, so tables are renamed BEFORE Hibernate looks for them -
+             otherwise ddl-auto=update would create new empty tables next to the old ones.
+             Versions are managed by the Spring Boot parent. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

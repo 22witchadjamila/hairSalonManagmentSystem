@@ -87,6 +87,40 @@ public class LoyaltyRewardServiceImpl implements ILoyaltyRewardService {
     }
 
     @Override
+    public LoyaltyReward removeEarnedPoints(String customerId, BigDecimal amountSpent) {
+        LoyaltyReward existing = getOrCreate(customerId);
+        int points = Helper.calculateLoyaltyPointsEarned(amountSpent);
+        if (points == 0) return existing;
+        // The customer may already have spent some of those points, so the balance stops at zero
+        // rather than going negative; the lifetime total (and so the tier) comes down in full.
+        int totalEarned = Math.max(0, existing.getTotalEarned() - points);
+        return repository.save(new LoyaltyReward.Builder()
+                .setLoyaltyId(existing.getLoyaltyId())
+                .setCustomer(existing.getCustomer())
+                .setPointsBalance(Math.max(0, existing.getPointsBalance() - points))
+                .setTotalEarned(totalEarned)
+                .setTotalRedeemed(existing.getTotalRedeemed())
+                .setTier(Helper.determineLoyaltyTier(totalEarned))
+                .setLastUpdated(LocalDateTime.now())
+                .build());
+    }
+
+    @Override
+    public LoyaltyReward returnRedeemedPoints(String customerId, int points) {
+        LoyaltyReward existing = getOrCreate(customerId);
+        if (points <= 0) return existing;
+        return repository.save(new LoyaltyReward.Builder()
+                .setLoyaltyId(existing.getLoyaltyId())
+                .setCustomer(existing.getCustomer())
+                .setPointsBalance(existing.getPointsBalance() + points)
+                .setTotalEarned(existing.getTotalEarned())
+                .setTotalRedeemed(Math.max(0, existing.getTotalRedeemed() - points))
+                .setTier(existing.getTier())
+                .setLastUpdated(LocalDateTime.now())
+                .build());
+    }
+
+    @Override
     public LoyaltyReward redeemPoints(String customerId, int points) {
         LoyaltyReward existing = getOrCreate(customerId);
         if (points <= 0 || points > existing.getPointsBalance()) {

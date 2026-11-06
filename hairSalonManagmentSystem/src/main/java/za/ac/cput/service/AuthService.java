@@ -35,7 +35,8 @@ import java.util.UUID;
  * Three ways in, and who can use each - this is the role separation the chapter asks for:
  *   registerCustomer      anyone, from the public sign-up page
  *   createStylistAccount  an ADMIN only (enforced in SecurityConfig and AdminController)
- *   createAdmin           nobody over HTTP - only AdminBootstrap, at startup, from env vars
+ *   createAdmin           AdminBootstrap at startup (env vars), or an existing ADMIN via
+ *                         POST /api/users - never anonymously, never by a customer or stylist
  */
 @Service
 public class AuthService {
@@ -102,11 +103,73 @@ public class AuthService {
                 stylist.getFirstName(), stylist.getLastName(), RoleSeeder.STYLIST);
     }
 
-    /** Only ever called by AdminBootstrap. There is deliberately no HTTP route to this. */
+    /** Called by AdminBootstrap. Uses a generic display name. */
     @Transactional
     public User createAdmin(String username, String rawPassword, String email) {
+        return createAdmin(username, rawPassword, email, "Salon", "Administrator");
+    }
+
+    /** Called by an existing admin via POST /api/users, which SecurityConfig limits to ADMIN. */
+    @Transactional
+    public User createAdmin(String username, String rawPassword, String email, String firstName, String lastName) {
         return saveLogin(username, rawPassword, STAFF_MIN_PASSWORD, Email.of(email),
-                "Salon", "Administrator", RoleSeeder.ADMIN);
+                firstName, lastName, RoleSeeder.ADMIN);
+    }
+
+    /**
+     * A staff login with a CUSTOM role (e.g. RECEPTIONIST), whose access comes from that role's
+     * permissions. Customer and stylist logins are refused here: they need the record behind
+     * them, so they are made by sign-up and on the Stylists page respectively.
+     */
+    @Transactional
+    public User createStaff(String username, String rawPassword, String email, String firstName,
+                            String lastName, String roleId) {
+        Role role = roles.findById(roleId)
+                .orElseThrow(() -> ResourceNotFoundException.forEntity("Role", roleId));
+        if (RoleSeeder.CUSTOMER.equals(role.getName()) || RoleSeeder.STYLIST.equals(role.getName()))
+            throw new InvalidOperationException("Customer logins come from sign-up and stylist logins from the Stylists page.");
+        return saveLogin(username, rawPassword, STAFF_MIN_PASSWORD, Email.of(email),
+                firstName, lastName, role.getName());
+    }
+
+    /**
+     * Deletes a LOGIN only - never the Customer or Stylist record behind it, so booking history
+     * survives. Two guards stop an admin locking everyone out:
+     *   - you cannot delete the account you are signed in with
+     *   - the last remaining admin cannot be deleted
+     */
+    @Transactional
+    public void deleteLogin(String userId, String actingUsername) {
+        User target = users.findById(userId)
+                .orElseThrow(() -> ResourceNotFoundException.forEntity("User", userId));
+        if (target.getUsername().equals(actingUsername))
+            throw new InvalidOperationException("You can't delete the account you're signed in with.");
+        if (target.getRole() != null && RoleSeeder.ADMIN.equals(target.getRole().getName())
+                && users.findByRole_Name(RoleSeeder.ADMIN).size() <= 1)
+            throw new InvalidOperationException("You can't delete the last admin account.");
+        users.delete(target);
+    }
+
+    /**
+     * Logins are linked to Customer and Stylist rows by email. When a profile's email changes,
+     * the login must follow or the link breaks and the person is signed in as nobody.
+     */
+    @Transactional
+    public void syncLoginEmail(Email oldEmail, Email newEmail) {
+        if (oldEmail == null || newEmail == null || oldEmail.equals(newEmail)) return;
+        if (users.existsByEmail_Value(newEmail.getValue()))
+            throw new InvalidOperationException("Another account already uses that email address.");
+        users.findByEmail_Value(oldEmail.getValue()).ifPresent(user -> users.save(new User.Builder()
+                .setUserId(user.getUserId())
+                .setUsername(user.getUsername())
+                .setPassword(user.getPassword())
+                .setEmail(newEmail)
+                .setFirstName(user.getFirstName())
+                .setLastName(user.getLastName())
+                .setActive(user.isActive())
+                .setCreatedAt(user.getCreatedAt())
+                .setRole(user.getRole())
+                .build()));
     }
 
     public boolean adminExists() {
