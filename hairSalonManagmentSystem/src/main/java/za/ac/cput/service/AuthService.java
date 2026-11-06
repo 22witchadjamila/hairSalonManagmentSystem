@@ -172,6 +172,60 @@ public class AuthService {
                 .build()));
     }
 
+    // ---------------------------------------------------------------- passwords
+
+    /** Does this raw password match the stored hash? False for an unknown username. */
+    public boolean passwordMatches(String username, String rawPassword) {
+        return users.findByUsername(username)
+                .map(u -> rawPassword != null && passwordEncoder.matches(rawPassword, u.getPassword()))
+                .orElse(false);
+    }
+
+    /** The caller has already proven they know the current password (AuthController). */
+    @Transactional
+    public void changePassword(String username, String currentRaw, String newRaw) {
+        User user = userFor(username);
+        if (newRaw != null && newRaw.equals(currentRaw))
+            throw new InvalidOperationException("Choose a password that is different from your current one.");
+        PasswordPolicy.validate(newRaw, minPasswordFor(user), user.getUsername());
+        savePassword(user, newRaw);
+    }
+
+    /**
+     * An admin sets someone else's password (the person forgot it). There is no "forgot password"
+     * email - nothing sends email - so this is the recovery route. Your own password is changed with
+     * changePassword instead, which asks for the current one.
+     * @return the username whose password was reset, so the caller can end their open sessions
+     */
+    @Transactional
+    public String resetPassword(String userId, String newRaw, String actingUsername) {
+        User user = users.findById(userId).orElseThrow(() -> ResourceNotFoundException.forEntity("User", userId));
+        if (user.getUsername().equals(actingUsername))
+            throw new InvalidOperationException("Use \"Change my password\" for your own account.");
+        PasswordPolicy.validate(newRaw, minPasswordFor(user), user.getUsername());
+        savePassword(user, newRaw);
+        return user.getUsername();
+    }
+
+    private static int minPasswordFor(User user) {
+        boolean customer = user.getRole() != null && RoleSeeder.CUSTOMER.equals(user.getRole().getName());
+        return customer ? CUSTOMER_MIN_PASSWORD : STAFF_MIN_PASSWORD;
+    }
+
+    private void savePassword(User user, String rawPassword) {
+        users.save(new User.Builder()
+                .setUserId(user.getUserId())
+                .setUsername(user.getUsername())
+                .setPassword(passwordEncoder.encode(rawPassword))
+                .setEmail(user.getEmail())
+                .setFirstName(user.getFirstName())
+                .setLastName(user.getLastName())
+                .setActive(user.isActive())
+                .setCreatedAt(user.getCreatedAt())
+                .setRole(user.getRole())
+                .build());
+    }
+
     public boolean adminExists() {
         return users.existsByRole_Name(RoleSeeder.ADMIN);
     }
@@ -197,8 +251,7 @@ public class AuthService {
                            String firstName, String lastName, String roleName) {
         if (username == null || username.isBlank())
             throw new InvalidOperationException("Username is required.");
-        if (rawPassword == null || rawPassword.length() < minPassword)
-            throw new InvalidOperationException("Password must be at least " + minPassword + " characters.");
+        PasswordPolicy.validate(rawPassword, minPassword, username);
         if (users.findByUsername(username).isPresent())
             throw new InvalidOperationException("That username is already taken.");
         // One login per email. Without this, the email link to a Customer or Stylist row

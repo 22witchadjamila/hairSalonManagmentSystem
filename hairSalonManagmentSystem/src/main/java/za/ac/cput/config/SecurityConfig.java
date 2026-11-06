@@ -1,21 +1,45 @@
 package za.ac.cput.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
-import za.ac.cput.repository.UserRepository;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices.RememberMeTokenAlgorithm;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfException;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import za.ac.cput.audit.AuditService;
+import za.ac.cput.repository.UserRepository;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Chapter 9 - ApplicationContextSecurity.xml, expressed as Java configuration.
@@ -25,11 +49,24 @@ import org.springframework.http.HttpStatus;
  *   Section C  <http> + <intercept-url>  -> securityFilterChain()
  *   Section D  <authentication-manager>  -> AppUserDetailsService + the PasswordEncoder here
  * (Section A was XML namespace plumbing and has no Java equivalent.)
+ *
+ * docs/SECURITY.md maps every section of the chapter to the code that implements it.
  */
 @Configuration
 // Section B: enables @PreAuthorize / @Secured on service and controller methods (9.7.6).
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    /**
+     * Signs the "remember me" cookie. Set SALON_REMEMBER_ME_KEY to keep remembered sign-ins across
+     * restarts; without it a random key is made at startup, so a restart signs everyone out - the
+     * safe default, and nothing secret has to be written into source control.
+     */
+    private final String rememberMeKey;
+
+    public SecurityConfig(@Value("${salon.remember-me.key:}") String configuredKey) {
+        this.rememberMeKey = configuredKey == null || configuredKey.isBlank() ? UUID.randomUUID().toString() : configuredKey;
+    }
 
     /**
      * Chapter 9.7.2 adds a <password-encoder hash="md5"/>.
@@ -51,23 +88,106 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    // ------------------------------------------------------------------ 9.7.4 / 9.7.5 sessions
+
+    /** Which sessions are open for which user - what "max 1 session" is counted against. */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, PermissionPolicy perm,
-                                                   UserRepository users) throws Exception {
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    /**
+     * Chapter 9.7.4: "add the following listener ... to keep Spring Security updated about session
+     * lifecycle events" (HttpSessionEventPublisher in web.xml). Without it the registry is never told
+     * when a session times out or is invalidated, and keeps counting sessions that no longer exist.
+     */
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    /**
+     * What Spring runs after a successful form login - and what OUR JSON login must run itself,
+     * because Spring never sees it (see AuthController.startSession):
+     *   1. concurrent session control, max-sessions="1"  (a second sign-in ends the first)
+     *   2. session fixation protection, migrateSession   (a fresh session id at sign-in)
+     *   3. register the new session in the registry
+     */
+    @Bean
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy(SessionRegistry registry) {
+        ConcurrentSessionControlAuthenticationStrategy concurrency = new ConcurrentSessionControlAuthenticationStrategy(registry);
+        concurrency.setMaximumSessions(1);
+        return new CompositeSessionAuthenticationStrategy(List.of(
+                concurrency,
+                new SessionFixationProtectionStrategy(),
+                new RegisterSessionAuthenticationStrategy(registry)));
+    }
+
+    // ------------------------------------------------------------------ remember me
+
+    /**
+     * The chapter's login form has a "Remember me on this computer" tick box
+     * (_spring_security_remember_me). The cookie holds the username, an expiry and a SHA-256
+     * signature over those plus the password hash, so it expires after 14 days and stops working
+     * the moment the password changes.
+     */
+    @Bean
+    public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
+        TokenBasedRememberMeServices services =
+                new TokenBasedRememberMeServices(rememberMeKey, userDetailsService, RememberMeTokenAlgorithm.SHA256);
+        services.setMatchingAlgorithm(RememberMeTokenAlgorithm.SHA256);
+        services.setTokenValiditySeconds(14 * 24 * 60 * 60);
+        services.setCookieName("salon-remember-me");
+        return services;
+    }
+
+    // ------------------------------------------------------------------ Section C
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, PermissionPolicy perm, UserRepository users,
+                                                   AuditService audit, Environment env, SessionRegistry registry,
+                                                   RememberMeServices rememberMeServices,
+                                                   @Value("${salon.http-redirect-port:8080}") int httpPort,
+                                                   @Value("${server.port:8080}") int serverPort) throws Exception {
+        // CSRF: the token lives in a cookie the page's script can read (XSRF-TOKEN) and is echoed back
+        // in the X-XSRF-TOKEN header on every POST/PUT/DELETE. A page on another site can make the
+        // browser SEND the cookie, but it can't READ it, so it can't produce the matching header.
+        CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfRepository.setCookieCustomizer(cookie -> cookie.sameSite("Lax"));
+
         http
-            // CSRF is disabled because the API is called by a same-origin SPA with no cookie-
-            // based form posts. See the write-up: this is the one trade-off worth revisiting.
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(csrfRepository)
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+            .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
 
             .sessionManagement(session -> {
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-                // Chapter 9.7.5 - session fixation protection. migrateSession is the chapter's
-                // default: a brand new session id is issued at login, so a session id an
-                // attacker planted beforehand is useless.
+                // Chapter 9.7.5 - session fixation protection (migrateSession).
                 session.sessionFixation(fixation -> fixation.migrateSession());
-                // Chapter 9.7.4 - concurrent session control, max-sessions="1".
-                session.maximumSessions(1);
+                // Chapter 9.7.4 - concurrent session control, max-sessions="1". A second sign-in
+                // ends the first. What the first browser sees next depends on what it asks for:
+                //   - an API call gets a 401 with a message, which the app turns into "you were
+                //     signed out" at the sign-in page;
+                //   - a page or file (index.html, /assets/*.js) is simply asked again. By then the
+                //     dead session has been dropped, so it is served to a signed-out visitor.
+                // Answering EVERYTHING with a 401 would stop the browser loading the app itself.
+                session.sessionConcurrency(concurrency -> concurrency
+                        .maximumSessions(1)
+                        .sessionRegistry(registry)
+                        .expiredSessionStrategy(event -> {
+                            String uri = event.getRequest().getRequestURI();
+                            if (uri.startsWith("/api/") || !uri.startsWith("/") || uri.startsWith("//")) {
+                                writeJson(event.getResponse(), HttpStatus.UNAUTHORIZED,
+                                        "You were signed out because this account signed in somewhere else.");
+                            } else {
+                                String query = event.getRequest().getQueryString();
+                                event.getResponse().sendRedirect(uri + (query == null ? "" : "?" + query));
+                            }
+                        }));
             })
+
+            .rememberMe(remember -> remember.rememberMeServices(rememberMeServices).key(rememberMeKey))
 
             // Section C: <intercept-url>. ORDER MATTERS - the first matching rule wins.
             //
@@ -122,9 +242,15 @@ public class SecurityConfig {
 
                 // ---------- everything else under /api: staff administration ----------
                 // ADMIN, or a custom role whose permissions cover this module + action (see
-                // PermissionPolicy). Paths outside every module - users, roles, /api/admin and
-                // anything new - stay ADMIN-only.
+                // PermissionPolicy). Paths outside every module - users, roles, the audit log,
+                // /api/admin and anything new - stay ADMIN-only.
                 .requestMatchers("/api/**").access(perm.orRoles(RoleSeeder.ADMIN))
+
+                // ---------- API documentation: admins only ----------
+                // These used to match the SPA catch-all below, so /v3/api-docs listed every endpoint
+                // of the system to anyone on the network.
+                .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
+                        .hasRole(RoleSeeder.ADMIN)
 
                 // ---------- the built Vue app (everything below is NOT under /api) ----------
                 .requestMatchers(HttpMethod.GET,
@@ -138,17 +264,29 @@ public class SecurityConfig {
             )
 
             // The chapter redirects browsers to login.jsp / accessDenied.jsp. A SPA fetches
-            // JSON, so a redirect to HTML would be useless to it - return the status code and
-            // let the Vue router decide where to send the person.
+            // JSON, so a redirect to HTML would be useless to it - return the status code (and a
+            // message) and let the Vue router decide where to send the person.
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))   // 401 - not logged in
-                .accessDeniedHandler((req, res, e) -> res.sendError(HttpStatus.FORBIDDEN.value(),
-                        "You do not have permission to perform this action."))                 // 403 - wrong role
+                .accessDeniedHandler((req, res, e) -> {                                        // 403 - wrong role / bad CSRF token
+                    boolean csrf = e instanceof CsrfException;
+                    // Only signed-in people reach here (anonymous visitors get the 401 above), so
+                    // this records who tried something they weren't allowed to.
+                    audit.record(req, csrf ? "CSRF_REJECTED" : "ACCESS_DENIED", HttpStatus.FORBIDDEN.value(),
+                            AuditService.DENIED, req.getMethod() + " " + req.getRequestURI());
+                    writeJson(res, HttpStatus.FORBIDDEN, csrf
+                            ? "Your page is out of date. Refresh it and try again."
+                            : "You do not have permission to perform this action.");
+                })
             )
 
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
-                .logoutSuccessHandler((req, res, a) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
+                .logoutSuccessHandler((req, res, authentication) -> {
+                    audit.recordAs(AuditService.actorOf(authentication), AuditService.roleOf(authentication), req,
+                            "LOGOUT", HttpStatus.NO_CONTENT.value(), AuditService.SUCCESS, null);
+                    res.setStatus(HttpStatus.NO_CONTENT.value());
+                })
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
             )
@@ -160,6 +298,21 @@ public class SecurityConfig {
             .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable());
 
+        // Chapter 9.7.3: requires-channel="https". Only with the "https" profile, so the normal
+        // http://localhost:8080 way of running keeps working. Plain-HTTP requests are sent to the
+        // HTTPS port (HttpsRedirectConfig opens the plain port just to do that).
+        if (env.matchesProfiles("https")) {
+            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+            http.portMapper(ports -> ports.http(httpPort).mapsTo(serverPort));
+        }
+
         return http.build();
+    }
+
+    private static void writeJson(HttpServletResponse res, HttpStatus status, String message) throws IOException {
+        res.setStatus(status.value());
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+        res.getWriter().write("{\"status\":" + status.value() + ",\"message\":\"" + message.replace("\"", "\\\"") + "\"}");
     }
 }

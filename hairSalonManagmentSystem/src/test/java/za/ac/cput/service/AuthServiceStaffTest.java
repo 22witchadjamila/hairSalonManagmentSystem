@@ -67,7 +67,7 @@ class AuthServiceStaffTest {
         when(roles.findByName(RoleSeeder.STYLIST)).thenReturn(Optional.of(stylistRole));
         when(users.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        service.createStylistAccount("s1", "thandi", "long-enough-pw");
+        service.createStylistAccount("s1", "thandi", "long-enough-pw-9");
 
         ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
         verify(users).save(saved.capture());
@@ -76,8 +76,8 @@ class AuthServiceStaffTest {
         assertEquals(RoleSeeder.STYLIST, user.getRole().getName());
         assertEquals("thandi@judithhairsalon.co.za", user.getEmail().getValue(),
                 "email must come from the Stylist row, not from the request");
-        assertNotEquals("long-enough-pw", user.getPassword(), "password must never be stored as typed");
-        assertTrue(encoder.matches("long-enough-pw", user.getPassword()), "stored value must be a valid hash of it");
+        assertNotEquals("long-enough-pw-9", user.getPassword(), "password must never be stored as typed");
+        assertTrue(encoder.matches("long-enough-pw-9", user.getPassword()), "stored value must be a valid hash of it");
     }
 
     @Test
@@ -99,7 +99,7 @@ class AuthServiceStaffTest {
         when(users.existsByEmail_Value("thandi@judithhairsalon.co.za")).thenReturn(true);
 
         assertThrows(InvalidOperationException.class,
-                () -> service.createStylistAccount("s1", "thandi2", "long-enough-pw"));
+                () -> service.createStylistAccount("s1", "thandi2", "long-enough-pw-9"));
         verify(users, never()).save(any());
     }
 }

@@ -1,0 +1,1 @@
+import{M as t}from"./index-CIsu59ut.js";const a={list:()=>t.get("/feedback"),publicReviews:()=>t.get("/feedback/public"),byCustomer:e=>t.get(`/feedback/customer/${e}`),create:e=>t.post("/feedback",e),delete:e=>t.delete(`/feedback/${e}`)};export{a as f};

@@ -31,6 +31,34 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
+    /** A path or method the API doesn't have is the caller's mistake (404 / 405), not a server fault (500). */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResource(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of(HttpStatus.NOT_FOUND.value(), "That doesn't exist."));
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiError> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiError.of(HttpStatus.METHOD_NOT_ALLOWED.value(), "That action isn't allowed here."));
+    }
+
+    /** Malformed JSON or a wrong field type: the caller's mistake, and the message must not echo internals. */
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadable(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.of(HttpStatus.BAD_REQUEST.value(), "The request couldn't be read. Check the values you sent."));
+    }
+
+    /** Too many failed sign-ins: 429 with how long to wait, in the standard Retry-After header too. */
+    @ExceptionHandler(TooManyAttemptsException.class)
+    public ResponseEntity<ApiError> handleTooManyAttempts(TooManyAttemptsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(ApiError.of(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(InvalidOperationException.class)
     public ResponseEntity<ApiError> handleInvalidOperation(InvalidOperationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

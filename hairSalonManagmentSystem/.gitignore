@@ -37,3 +37,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Local HTTPS certificate (never commit) ###
+*.p12
+*.jks

@@ -1,0 +1,1 @@
+import{M as o}from"./index-CIsu59ut.js";const n={book:t=>o.post("/appointments/book",t),byCustomer:t=>o.get(`/appointments/customer/${t}`),byStylist:t=>o.get(`/appointments/stylist/${t}`),list:()=>o.get("/appointments"),confirm:t=>o.post(`/appointments/${t}/confirm`),cancel:t=>o.post(`/appointments/${t}/cancel`),complete:t=>o.post(`/appointments/${t}/complete`)};export{n as a};

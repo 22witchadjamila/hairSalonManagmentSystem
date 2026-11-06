@@ -1,6 +1,9 @@
 package za.ac.cput.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,19 +11,29 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
+import za.ac.cput.audit.AuditService;
+import za.ac.cput.config.LoginAttemptService;
 import za.ac.cput.config.PermissionPolicy;
 import za.ac.cput.config.RoleSeeder;
+import za.ac.cput.config.SessionControl;
 import za.ac.cput.domain.Customer;
 import za.ac.cput.domain.Stylist;
 import za.ac.cput.domain.User;
+import za.ac.cput.exception.InvalidOperationException;
+import za.ac.cput.exception.TooManyAttemptsException;
 import za.ac.cput.service.AuthService;
+
+import java.util.OptionalLong;
 
 /**
  * Chapter 9.5.2 Form-Based Authentication.
@@ -40,12 +53,24 @@ public class AuthController {
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final PermissionPolicy perm;
+    private final LoginAttemptService attempts;
+    private final AuditService audit;
+    private final SessionAuthenticationStrategy sessionStrategy;
+    private final RememberMeServices rememberMe;
+    private final SessionControl sessionControl;
 
     public AuthController(AuthService authService, AuthenticationManager authenticationManager,
-                          PermissionPolicy perm) {
+                          PermissionPolicy perm, LoginAttemptService attempts, AuditService audit,
+                          SessionAuthenticationStrategy sessionStrategy, RememberMeServices rememberMe,
+                          SessionControl sessionControl) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.perm = perm;
+        this.attempts = attempts;
+        this.audit = audit;
+        this.sessionStrategy = sessionStrategy;
+        this.rememberMe = rememberMe;
+        this.sessionControl = sessionControl;
     }
 
     public record RegisterRequest(
@@ -56,7 +81,10 @@ public class AuthController {
             @NotBlank @Email String email,
             @NotBlank String phoneNumber) {}
 
-    public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
+    /** rememberMe: the chapter's "Remember me on this computer" tick box. Optional; false if omitted. */
+    public record LoginRequest(@NotBlank String username, @NotBlank String password, Boolean rememberMe) {}
+
+    public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank String newPassword) {}
 
     /** Who the caller is. Shape is deliberately minimal - no password, no role internals. */
     /**
@@ -71,17 +99,76 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public SessionUser register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
+    public SessionUser register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http,
+                                HttpServletResponse response) {
         authService.registerCustomer(request.username(), request.password(), request.firstName(),
                 request.lastName(), request.email(), request.phoneNumber());
         // Sign the new customer straight in - having just typed the password, making them
         // type it again is friction with no security benefit.
-        return authenticate(request.username(), request.password(), http);
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+        SessionUser user = startSession(auth, http, response, false);
+        audit.recordAs(auth.getName(), user.role(), http, "Registered a customer account", 201, AuditService.SUCCESS, null);
+        return user;
     }
 
+    /**
+     * Sign in. After five wrong passwords for a username the account is locked for 15 minutes
+     * (LoginAttemptService), and every outcome - success, failure, block, lock - is written to
+     * the audit log with the username that was typed.
+     */
     @PostMapping("/login")
-    public SessionUser login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
-        return authenticate(request.username(), request.password(), http);
+    public SessionUser login(@Valid @RequestBody LoginRequest request, HttpServletRequest http,
+                             HttpServletResponse response) {
+        String username = request.username().trim();
+
+        OptionalLong lockedFor = attempts.lockedForSeconds(username);
+        if (lockedFor.isPresent()) {
+            audit.recordAs(username, null, http, "LOGIN_BLOCKED", 429, AuditService.DENIED, "Account is temporarily locked");
+            throw new TooManyAttemptsException(lockedFor.getAsLong());
+        }
+
+        Authentication auth;
+        try {
+            auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, request.password()));
+        } catch (AuthenticationException e) {
+            boolean nowLocked = attempts.recordFailure(username);
+            audit.recordAs(username, null, http, "LOGIN_FAILED", 401, AuditService.DENIED, null);
+            if (nowLocked) {
+                audit.recordAs(username, null, http, "ACCOUNT_LOCKED", 429, AuditService.DENIED,
+                        "Locked for 15 minutes after repeated failed sign-ins");
+            }
+            // One message for every failure. Distinguishing "no such user" from "wrong
+            // password" would let someone enumerate valid usernames.
+            throw new BadCredentialsException("Incorrect username or password.");
+        }
+
+        attempts.recordSuccess(username);
+        boolean remember = Boolean.TRUE.equals(request.rememberMe());
+        SessionUser user = startSession(auth, http, response, remember);
+        audit.recordAs(auth.getName(), user.role(), http, "LOGIN", 200, AuditService.SUCCESS, remember ? "Remember me" : null);
+        return user;
+    }
+
+    /**
+     * Change your own password. The current password must be right (a wrong guess counts toward the
+     * same lockout as a failed sign-in, so a stolen session can't be used to guess it), the new one
+     * must pass PasswordPolicy, and every OTHER open session for the account is signed out.
+     */
+    @PostMapping("/change-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changePassword(@Valid @RequestBody ChangePasswordRequest request, Authentication authentication,
+                               HttpServletRequest http) {
+        String username = authentication.getName();
+        OptionalLong lockedFor = attempts.lockedForSeconds(username);
+        if (lockedFor.isPresent()) throw new TooManyAttemptsException(lockedFor.getAsLong());
+        if (!authService.passwordMatches(username, request.currentPassword())) {
+            attempts.recordFailure(username);
+            throw new InvalidOperationException("Your current password is incorrect.");
+        }
+        authService.changePassword(username, request.currentPassword(), request.newPassword());
+        HttpSession session = http.getSession(false);
+        sessionControl.expireSessionsOf(username, session == null ? null : session.getId());
     }
 
     /**
@@ -97,27 +184,43 @@ public class AuthController {
         return ResponseEntity.ok(describe(authentication));
     }
 
-    private SessionUser authenticate(String username, String password, HttpServletRequest http) {
-        Authentication auth;
-        try {
-            auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password));
-        } catch (AuthenticationException e) {
-            // One message for every failure. Distinguishing "no such user" from "wrong
-            // password" would let someone enumerate valid usernames.
-            throw new org.springframework.security.authentication.BadCredentialsException(
-                    "Incorrect username or password.");
-        }
+    /**
+     * Establishes the session after the credentials were verified.
+     *
+     * Spring applies its SessionAuthenticationStrategy chain to its OWN form login. This endpoint is
+     * our own JSON login, so Spring never sees it - and without this call neither session-fixation
+     * protection (9.7.5) nor the one-session-per-user rule (9.7.4) would run. The chain does three
+     * things: ends the user's other session (max 1), issues a NEW session id so one planted before
+     * sign-in is worthless (migrateSession), and registers the session so it can be ended later.
+     */
+    private SessionUser startSession(Authentication auth, HttpServletRequest http, HttpServletResponse response,
+                                     boolean remember) {
+        sessionStrategy.onAuthentication(auth, http, response);
 
-        // Establish the session. Spring's fixation protection (SecurityConfig) issues a fresh
-        // session id at this point, so a pre-planted id cannot be reused.
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
         http.getSession(true).setAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
+        // "Remember me on this computer": a signed, expiring cookie that signs the person back in
+        // when the session has ended. It includes the password hash, so changing the password
+        // invalidates every remembered sign-in.
+        if (remember) rememberMe.loginSuccess(new RememberMeRequest(http), response, auth);
+
         return describe(auth);
+    }
+
+    /** The remember-me service looks for a form field; our login is JSON, so report it as ticked. */
+    private static final class RememberMeRequest extends HttpServletRequestWrapper {
+        RememberMeRequest(HttpServletRequest request) {
+            super(request);
+        }
+
+        @Override
+        public String getParameter(String name) {
+            return "remember-me".equals(name) ? "true" : super.getParameter(name);
+        }
     }
 
     /**

@@ -1,0 +1,1 @@
+import{M as e}from"./index-CIsu59ut.js";const o={list:()=>e.get("/payments"),summary:()=>e.get("/payments/summary"),record:(s,t,m,p)=>e.post("/payments/record",{appointmentId:s,method:t,promoCode:m??null,redeemPoints:p||null}),refund:s=>e.post(`/payments/${s}/refund`)};export{o as p};

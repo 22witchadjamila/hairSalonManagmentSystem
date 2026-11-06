@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.User;
+import za.ac.cput.config.SessionControl;
 import za.ac.cput.service.AuthService;
 import za.ac.cput.service.RoleAdminService;
 import za.ac.cput.service.IUserService;
@@ -30,11 +31,14 @@ public class UserController {
     private final IUserService service;
     private final AuthService authService;
     private final RoleAdminService roleAdmin;
+    private final SessionControl sessionControl;
 
-    public UserController(IUserService service, AuthService authService, RoleAdminService roleAdmin) {
+    public UserController(IUserService service, AuthService authService, RoleAdminService roleAdmin,
+                          SessionControl sessionControl) {
         this.service = service;
         this.authService = authService;
         this.roleAdmin = roleAdmin;
+        this.sessionControl = sessionControl;
     }
 
     /** roleId: null/blank = ADMIN (the original behaviour), otherwise a custom role. */
@@ -45,6 +49,8 @@ public class UserController {
 
     public record RoleChange(@NotBlank String roleId) {}
 
+    public record PasswordReset(@NotBlank String newPassword) {}
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@Valid @RequestBody AdminUserRequest request) {
@@ -53,6 +59,18 @@ public class UserController {
                     request.firstName(), request.lastName());
         return authService.createStaff(request.username(), request.password(), request.email(),
                 request.firstName(), request.lastName(), request.roleId());
+    }
+
+    /**
+     * Set another person's password. Their open sessions end, so whoever had the old password (or a
+     * stolen session) is signed out. Recorded in the audit log by AuditInterceptor.
+     */
+    @PutMapping("/{id}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(@PathVariable String id, @Valid @RequestBody PasswordReset request,
+                              Authentication authentication) {
+        String username = authService.resetPassword(id, request.newPassword(), authentication.getName());
+        sessionControl.expireSessionsOf(username, null);
     }
 
     /** Move a staff login to ADMIN or a custom role. Their open session ends (SessionFreshnessFilter). */
