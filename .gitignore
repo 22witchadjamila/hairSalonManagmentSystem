@@ -1,0 +1,10 @@
+# Frontend source (frontend/): never commit installed packages, build output or local settings.
+# The built site lives in hairSalonManagmentSystem/src/main/resources/static.
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+frontend/*.local
+frontend/.vscode/
+frontend/.claude/

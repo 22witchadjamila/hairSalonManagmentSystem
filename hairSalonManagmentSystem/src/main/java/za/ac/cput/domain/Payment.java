@@ -49,6 +49,12 @@ public class Payment {
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 
+    /**
+     * Loyalty points spent on this payment (each takes R0.50 off). Nullable so rows from before
+     * the column existed read as zero. Remembered so a refund can give the points back.
+     */
+    private Integer loyaltyPointsRedeemed;
+
     protected Payment(){}
 
     public Payment(Builder builder){
@@ -62,6 +68,7 @@ public class Payment {
         this.transactionRef = builder.transactionRef;
         this.appointment    = builder.appointment;
         this.promotion      = builder.promotion;
+        this.loyaltyPointsRedeemed = builder.loyaltyPointsRedeemed;
     }
 
     public String getPaymentId() {
@@ -96,6 +103,8 @@ public class Payment {
 
     public Promotion getPromotion() {return promotion;}
 
+    public int getLoyaltyPointsRedeemed() {return loyaltyPointsRedeemed == null ? 0 : loyaltyPointsRedeemed;}
+
     public static class Builder{
         private String paymentId;
         private Money amount;
@@ -107,6 +116,7 @@ public class Payment {
         private String transactionRef;
         private Appointment appointment;
         private Promotion promotion;
+        private Integer loyaltyPointsRedeemed = 0;
 
         public Builder setPaymentId(String paymentId) {
             this.paymentId = paymentId;
@@ -155,6 +165,11 @@ public class Payment {
 
         public Builder setPromotion(Promotion promotion) {
             this.promotion = promotion;
+            return this;
+        }
+
+        public Builder setLoyaltyPointsRedeemed(int loyaltyPointsRedeemed) {
+            this.loyaltyPointsRedeemed = loyaltyPointsRedeemed;
             return this;
         }
 

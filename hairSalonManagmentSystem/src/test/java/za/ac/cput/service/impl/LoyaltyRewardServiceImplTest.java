@@ -146,5 +146,48 @@ class LoyaltyRewardServiceImplTest {
 
         assertThrows(InvalidOperationException.class, () -> service.redeemPoints(customer.getCustomerId(), 0));
     }
-}
 
+    @Test
+    @DisplayName("removeEarnedPoints() takes a refunded payment's points off balance and lifetime total, and the tier follows")
+    void removeEarnedPoints_reversesAndDowngradesTier() {
+        LoyaltyReward gold = new LoyaltyReward.Builder().setLoyaltyId("l1").setCustomer(customer)
+                .setPointsBalance(2050).setTotalEarned(2050).setTotalRedeemed(0).setTier(LoyaltyTier.GOLD).build();
+        when(repository.findByCustomer_CustomerId(customer.getCustomerId())).thenReturn(Optional.of(gold));
+        when(repository.save(any(LoyaltyReward.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LoyaltyReward result = service.removeEarnedPoints(customer.getCustomerId(), new BigDecimal("1000.00")); // 100 points
+
+        assertEquals(1950, result.getPointsBalance());
+        assertEquals(1950, result.getTotalEarned());
+        assertEquals(LoyaltyTier.SILVER, result.getTier());   // 1950 is below the 2000 GOLD line
+    }
+
+    @Test
+    @DisplayName("removeEarnedPoints() never takes the balance below zero when the points were already spent")
+    void removeEarnedPoints_floorsBalanceAtZero() {
+        LoyaltyReward spent = new LoyaltyReward.Builder().setLoyaltyId("l1").setCustomer(customer)
+                .setPointsBalance(10).setTotalEarned(100).setTotalRedeemed(90).setTier(LoyaltyTier.BRONZE).build();
+        when(repository.findByCustomer_CustomerId(customer.getCustomerId())).thenReturn(Optional.of(spent));
+        when(repository.save(any(LoyaltyReward.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LoyaltyReward result = service.removeEarnedPoints(customer.getCustomerId(), new BigDecimal("500.00")); // 50 points
+
+        assertEquals(0, result.getPointsBalance());
+        assertEquals(50, result.getTotalEarned());
+    }
+
+    @Test
+    @DisplayName("returnRedeemedPoints() gives points back and reduces total redeemed")
+    void returnRedeemedPoints_givesBack() {
+        LoyaltyReward r = new LoyaltyReward.Builder().setLoyaltyId("l1").setCustomer(customer)
+                .setPointsBalance(20).setTotalEarned(100).setTotalRedeemed(80).setTier(LoyaltyTier.BRONZE).build();
+        when(repository.findByCustomer_CustomerId(customer.getCustomerId())).thenReturn(Optional.of(r));
+        when(repository.save(any(LoyaltyReward.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LoyaltyReward result = service.returnRedeemedPoints(customer.getCustomerId(), 60);
+
+        assertEquals(80, result.getPointsBalance());
+        assertEquals(20, result.getTotalRedeemed());
+        assertEquals(100, result.getTotalEarned());
+    }
+}

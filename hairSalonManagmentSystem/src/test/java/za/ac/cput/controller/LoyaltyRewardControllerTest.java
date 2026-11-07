@@ -7,12 +7,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import za.ac.cput.domain.LoyaltyReward;
+import za.ac.cput.exception.InvalidOperationException;
 import za.ac.cput.service.ILoyaltyRewardService;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,14 +50,26 @@ public class LoyaltyRewardControllerTest {
     }
 
     @Test
-    @DisplayName("redeemPoints() delegates to service.redeemPoints()")
-    void redeemPoints_delegatesToService() {
-        LoyaltyReward reward = mock(LoyaltyReward.class);
-        when(service.redeemPoints("c1", 50)).thenReturn(reward);
+    @DisplayName("rules() reports the same numbers the server uses")
+    void rules_reportsServerConstants() {
+        LoyaltyRewardController.LoyaltyRules rules = controller.rules();
+        assertEquals(0, new BigDecimal("10").compareTo(rules.randSpentPerPoint()));
+        assertEquals(0, new BigDecimal("0.50").compareTo(rules.randPerPoint()));
+        assertEquals(50, rules.minRedeemPoints());
+        assertEquals(500, rules.silverFrom());
+        assertEquals(2000, rules.goldFrom());
+        assertEquals(5000, rules.platinumFrom());
+    }
 
-        LoyaltyRewardController.RedeemPointsRequest request = new LoyaltyRewardController.RedeemPointsRequest(50);
-
-        assertEquals(reward, controller.redeemPoints("c1", request));
+    @Test
+    @DisplayName("addPoints() refuses a blank, zero, absurd or too-small amount")
+    void addPoints_validatesAmount() {
+        for (String bad : new String[]{null, "0", "-5", "9.99", "100000.01"}) {
+            BigDecimal amount = bad == null ? null : new BigDecimal(bad);
+            assertThrows(InvalidOperationException.class,
+                    () -> controller.addPoints("c1", new LoyaltyRewardController.AddPointsRequest(amount)), String.valueOf(bad));
+        }
+        verifyNoInteractions(service);
     }
 
     @Test

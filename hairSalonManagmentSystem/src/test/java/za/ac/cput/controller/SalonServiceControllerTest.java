@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import za.ac.cput.domain.SalonService;
 import za.ac.cput.domain.enums.ServiceCategory;
 import za.ac.cput.service.ISalonServiceService;
+import za.ac.cput.service.RetirementService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,6 +26,9 @@ class SalonServiceControllerTest {
 
     @Mock
     private ISalonServiceService service;
+
+    @Mock
+    private RetirementService retirementService;
 
     @InjectMocks
     private SalonServiceController controller;
@@ -128,11 +132,14 @@ class SalonServiceControllerTest {
     }
 
     @Test
-    @DisplayName("delete() delegates to service.delete()")
-    void delete_delegatesToService() {
-        controller.delete("svc1");
+    @DisplayName("delete() archives-or-deletes via RetirementService and reports which happened")
+    void delete_usesRetirementStrategy() {
+        RetirementService.Result archived = new RetirementService.Result(
+                RetirementService.Outcome.ARCHIVED, "Cut has existing bookings, so it was archived");
+        when(retirementService.retireService("svc1")).thenReturn(archived);
 
-        verify(service).delete("svc1");
+        assertEquals(archived, controller.delete("svc1"));
+        verify(service, never()).delete(any());   // never a raw delete that the FK would reject
     }
 }
 

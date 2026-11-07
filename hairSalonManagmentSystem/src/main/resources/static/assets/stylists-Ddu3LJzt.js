@@ -1,0 +1,1 @@
+import{M as s}from"./index-CIsu59ut.js";const l={listActive:()=>s.get("/stylists/active"),list:()=>s.get("/stylists"),get:t=>s.get(`/stylists/${t}`),create:t=>s.post("/stylists",t),update:(t,e)=>s.put(`/stylists/${t}`,e),delete:t=>s.delete(`/stylists/${t}`),restore:t=>s.post(`/stylists/${t}/restore`)};export{l as s};

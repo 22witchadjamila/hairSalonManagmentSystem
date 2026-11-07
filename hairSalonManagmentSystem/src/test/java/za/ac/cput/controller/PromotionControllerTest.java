@@ -9,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import za.ac.cput.domain.Promotion;
 import za.ac.cput.domain.enums.DiscountType;
 import za.ac.cput.service.IPromotionService;
+import za.ac.cput.service.PromotionAdminService;
+import za.ac.cput.service.PromotionOfferService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,17 +26,23 @@ class PromotionControllerTest {
     @Mock
     private IPromotionService service;
 
+    @Mock
+    private PromotionAdminService admin;
+
+    @Mock
+    private PromotionOfferService offers;
+
     @InjectMocks
     private PromotionController controller;
 
     @Test
-    @DisplayName("create() delegates to service.register()")
+    @DisplayName("create() goes through the validating admin service")
     void create_delegatesToService() {
         Promotion promotion = mock(Promotion.class);
         LocalDate start = LocalDate.now();
         LocalDate end = start.plusMonths(1);
-        when(service.register("SUMMER20", "Summer discount", DiscountType.PERCENTAGE,
-                new BigDecimal("20"), start, end, 100)).thenReturn(promotion);
+        when(admin.create(new PromotionAdminService.Details("SUMMER20", "Summer discount",
+                DiscountType.PERCENTAGE, new BigDecimal("20"), start, end, 100))).thenReturn(promotion);
 
         PromotionController.PromotionRequest request = new PromotionController.PromotionRequest(
                 "SUMMER20", "Summer discount", DiscountType.PERCENTAGE, new BigDecimal("20"), start, end, 100);
@@ -70,11 +78,11 @@ class PromotionControllerTest {
     }
 
     @Test
-    @DisplayName("delete() delegates to service.delete()")
-    void delete_delegatesToService() {
+    @DisplayName("delete() goes through the admin service, which refuses promotions with history")
+    void delete_delegatesToAdminService() {
         controller.delete("p1");
 
-        verify(service).delete("p1");
+        verify(admin).delete("p1");
     }
 }
 

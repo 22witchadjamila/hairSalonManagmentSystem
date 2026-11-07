@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "Appointment")
+@Table(name = "appointments")
 public class Appointment {
 
     @Id
@@ -25,6 +25,13 @@ public class Appointment {
 
     private String notes;
     private LocalDateTime createdAt;
+
+    /**
+     * Promotion code the customer chose when booking (nullable column promo_code). It records
+     * INTENT only: the discount is calculated - and the promotion's usage counted - on the server
+     * when the in-store payment is recorded, so nothing the browser sends can change a price.
+     */
+    private String promoCode;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
@@ -46,6 +53,7 @@ public class Appointment {
         this.timeSlot = builder.timeSlot;
         this.status = builder.status;
         this.notes = builder.notes;
+        this.promoCode = builder.promoCode;
         this.createdAt = builder.createdAt;
         this.customer = builder.customer;
         this.stylist = builder.stylist;
@@ -76,6 +84,10 @@ public class Appointment {
         return notes;
     }
 
+    public String getPromoCode() {
+        return promoCode;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -102,6 +114,7 @@ public class Appointment {
         private TimeSlot timeSlot;
         private AppointmentStatus status;
         private String notes;
+        private String promoCode;
         private LocalDateTime createdAt;
         private Customer customer;
         private Stylist stylist;
@@ -124,6 +137,11 @@ public class Appointment {
 
         public Builder setNotes(String notes) {
             this.notes = notes;
+            return this;
+        }
+
+        public Builder setPromoCode(String promoCode) {
+            this.promoCode = promoCode;
             return this;
         }
 

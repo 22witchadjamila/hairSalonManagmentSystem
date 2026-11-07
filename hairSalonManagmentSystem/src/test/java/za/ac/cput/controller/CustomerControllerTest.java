@@ -62,7 +62,8 @@ public class CustomerControllerTest {
         assertEquals(customer, result);
         verify(service).registerWithDetails("Jane", "Doe", "jane@gmail.com",
                 "0821234567", dob);
-        verify(service, org.mockito.Mockito.never()).registerWithDetails(any(), any(), any(), any(), any());
+        // the plain register() must NOT be used when a date of birth is given
+        verify(service, org.mockito.Mockito.never()).register(any(), any(), any(), any());
     }
 
     @Test

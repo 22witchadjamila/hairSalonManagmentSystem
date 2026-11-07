@@ -6,12 +6,14 @@ import za.ac.cput.domain.Customer;
 import za.ac.cput.domain.SalonService;
 import za.ac.cput.domain.Stylist;
 import za.ac.cput.domain.enums.AppointmentStatus;
+import za.ac.cput.domain.enums.PaymentStatus;
 import za.ac.cput.domain.valueobject.TimeSlot;
 import za.ac.cput.exception.InvalidOperationException;
 import za.ac.cput.exception.ResourceNotFoundException;
 import za.ac.cput.factory.AppointmentFactory;
 import za.ac.cput.repository.AppointmentRepository;
 import za.ac.cput.repository.CustomerRepository;
+import za.ac.cput.repository.PaymentRepository;
 import za.ac.cput.repository.SalonServiceRepository;
 import za.ac.cput.repository.StylistRepository;
 import za.ac.cput.service.IAppointmentService;
@@ -29,18 +31,21 @@ public class AppointmentServiceImpl implements IAppointmentService {
     private final StylistRepository stylistRepository;
     private final SalonServiceRepository salonServiceRepository;
     private final INotificationService notificationService;
+    private final PaymentRepository paymentRepository;
 
 
     public AppointmentServiceImpl(AppointmentRepository repository,
                                    CustomerRepository customerRepository,
                                    StylistRepository stylistRepository,
                                    SalonServiceRepository salonServiceRepository,
-                                  INotificationService notificationService) {
+                                  INotificationService notificationService,
+                                  PaymentRepository paymentRepository) {
         this.repository = repository;
         this.customerRepository = customerRepository;
         this.stylistRepository = stylistRepository;
         this.salonServiceRepository = salonServiceRepository;
         this.notificationService = notificationService;
+        this.paymentRepository = paymentRepository;
     }
 
     @Override
@@ -99,12 +104,25 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
     @Override
     public Appointment confirmAppointment(String appointmentId) {
+        if (read(appointmentId).getStatus() != AppointmentStatus.PENDING) {
+            throw new InvalidOperationException("Only a pending appointment can be confirmed.");
+        }
         Appointment confirmed = updateStatus(appointmentId, AppointmentStatus.CONFIRMED);
         notificationService.notifyAppointmentConfirmed(confirmed);
         return confirmed;
     }
     @Override
     public Appointment cancelAppointment(String appointmentId) {
+        AppointmentStatus status = read(appointmentId).getStatus();
+        // Done, already cancelled or no-show bookings are history; cancelling them would just rewrite it.
+        if (status != AppointmentStatus.PENDING && status != AppointmentStatus.CONFIRMED) {
+            throw new InvalidOperationException("Only a pending or confirmed appointment can be cancelled.");
+        }
+        // A paid booking that is cancelled would leave the money (and any promotion use or loyalty
+        // points) counted against an appointment that never happened. Refund first.
+        if (paymentRepository.existsByAppointment_AppointmentIdAndStatus(appointmentId, PaymentStatus.PAID)) {
+            throw new InvalidOperationException("This appointment has been paid. Refund the payment first, then cancel it.");
+        }
         return updateStatus(appointmentId, AppointmentStatus.CANCELLED);
     }
     @Override
@@ -133,6 +151,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
                 .setAppointmentDate(existing.getAppointmentDate())
                 .setTimeSlot(existing.getTimeSlot())
                 .setNotes(existing.getNotes())
+                .setPromoCode(existing.getPromoCode())   // keep the customer's code through status changes
                 .setCreatedAt(existing.getCreatedAt())
                 .setStatus(newStatus)
                 .build();

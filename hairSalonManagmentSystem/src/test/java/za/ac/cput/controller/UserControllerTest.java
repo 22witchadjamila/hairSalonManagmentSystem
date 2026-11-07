@@ -6,9 +6,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import za.ac.cput.domain.Role;
 import za.ac.cput.domain.User;
-import za.ac.cput.service.IRoleService;
+import za.ac.cput.service.AuthService;
+import org.springframework.security.core.Authentication;
 import za.ac.cput.service.IUserService;
 
 import java.util.List;
@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
- * UserController has two collaborators (IUserService and IRoleService), so both get mocked -
- * exactly the same pattern as a service class with multiple repository dependencies.
+ * UserController now creates ADMIN logins through AuthService (with a hashed password) and
+ * deletes through AuthService's guarded path, so those two collaborators are mocked.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserController Tests")
@@ -28,47 +28,25 @@ class UserControllerTest {
     private IUserService service;
 
     @Mock
-    private IRoleService roleService;
+    private AuthService authService;
+
+    @Mock
+    private za.ac.cput.service.RoleAdminService roleAdmin;
 
     @InjectMocks
     private UserController controller;
 
     @Test
-    @DisplayName("create() with a roleId looks up the role first, then registers the user with it")
-    void create_withRoleId_looksUpRoleThenRegisters() {
-        Role role = mock(Role.class);
+    @DisplayName("create() makes an admin login WITH a password - no more password-less accounts")
+    void create_createsAdminWithPassword() {
         User user = mock(User.class);
-        when(roleService.read("r1")).thenReturn(role);
-        when(service.register("jdoe", "j@email.com", "Jane",
-                "Doe", role)).thenReturn(user);
+        when(authService.createAdmin("jdoe", "a-long-password", "j@email.com", "Jane", "Doe")).thenReturn(user);
 
-        UserController.UserRequest request = new UserController.UserRequest("jdoe",
-                "j@email.com", "Jane", "Doe", "r1");
-
-        User result = controller.create(request);
+        User result = controller.create(new UserController.AdminUserRequest(
+                "jdoe", "a-long-password", "j@email.com", "Jane", "Doe", null));
 
         assertEquals(user, result);
-        verify(roleService).read("r1");
-        verify(service).register("jdoe", "j@email.com", "Jane", "Doe",
-                role);
-    }
-
-    @Test
-    @DisplayName("create() without a roleId never touches roleService, registers with a null role")
-    void create_withoutRoleId_skipsRoleLookup() {
-        User user = mock(User.class);
-        when(service.register("jdoe", "j@email.com", "Jane", "Doe",
-                null)).thenReturn(user);
-
-        UserController.UserRequest request = new UserController.UserRequest("jdoe",
-                "j@email.com", "Jane", "Doe", null);
-
-        User result = controller.create(request);
-
-        assertEquals(user, result);
-        verifyNoInteractions(roleService);
-        verify(service).register("jdoe", "j@email.com", "Jane",
-                "Doe", null);
+        verify(service, never()).register(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -99,11 +77,15 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("delete() delegates to service.delete()")
-    void delete_delegatesToService() {
-        controller.delete("u1");
+    @DisplayName("delete() goes through the guarded path, passing who is asking")
+    void delete_usesGuardedDelete() {
+        Authentication me = mock(Authentication.class);
+        when(me.getName()).thenReturn("judith");
 
-        verify(service).delete("u1");
+        controller.delete("u1", me);
+
+        verify(authService).deleteLogin("u1", "judith");
+        verify(service, never()).delete(any());
     }
 }
 

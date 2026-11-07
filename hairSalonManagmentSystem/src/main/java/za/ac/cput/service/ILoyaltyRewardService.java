@@ -11,6 +11,12 @@ public interface ILoyaltyRewardService extends IService<LoyaltyReward, String> {
     /** Earns points for money spent and re-evaluates the customer's tier. */
     LoyaltyReward addPoints(String customerId, BigDecimal amountSpent);
 
+    /** A refund takes back the points that payment earned (balance and lifetime total; tier is re-evaluated). */
+    LoyaltyReward removeEarnedPoints(String customerId, BigDecimal amountSpent);
+
+    /** A refund gives back the points that payment spent. */
+    LoyaltyReward returnRedeemedPoints(String customerId, int points);
+
     /** Redeems points from the balance (does not affect tier, which is based on lifetime earned points). */
     LoyaltyReward redeemPoints(String customerId, int points);
 }

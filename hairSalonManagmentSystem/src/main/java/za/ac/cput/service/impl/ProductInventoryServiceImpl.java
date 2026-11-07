@@ -78,6 +78,7 @@ public class ProductInventoryServiceImpl implements IProductInventoryService {
                 .setCostPrice(existing.getCostPrice())
                 .setSellingPrice(existing.getSellingPrice())
                 .setSalonService(existing.getSalonService())
+                .setForSale(existing.isForSale())   // a stock change must not unlist a product
                 .build();
         return repository.save(updated);
     }

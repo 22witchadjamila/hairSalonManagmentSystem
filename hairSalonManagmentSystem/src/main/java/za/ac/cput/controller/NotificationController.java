@@ -1,4 +1,5 @@
 package za.ac.cput.controller;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.domain.Notification;
 import za.ac.cput.domain.enums.NotificationChannel;
@@ -40,6 +41,7 @@ public class NotificationController {
     }
 
     @GetMapping("/customer/{customerId}")
+    @PreAuthorize("@perm.granted() or @access.isCustomer(#customerId)")
     public List<Notification> findByCustomer(@PathVariable String customerId) {
         return service.findByCustomer(customerId);
     }
